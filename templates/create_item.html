@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Users DB{% endblock %}
+{% block body %}
+    <form action="#" method = "post">
+        <p><b>Item Name*</b><br>
+            <input type="text" name="name">
+        </p>
+
+        <p><b>Estimated Price*</b><br>
+            <input type="text" name="price">
+        </p>
+
+        <p><b>Description</b><br>
+            <textarea name="descp" cols="30" rows="4"></textarea>
+        </p>
+
+        <p><b>Category*</b></p>
+        <input type="radio" id="kitchen" name="category" value="Kitchen">
+        <label for="kitchen">Kitchen</label><br>
+        <input type="radio" id="furniture" name="category" value="Furniture">
+        <label for="furniture">Furniture</label><br>
+        <input type="radio" id="device" name="category" value="Device">
+        <label for="device">Device</label><br>
+        <input type="radio" id="clothing" name="category" value="Clothing">
+        <label for="clothing">Clothing</label><br>
+        <input type="radio" id="books" name="category" value="Books">
+        <label for="books">Books</label><br>
+        <input type="radio" id="other" name="category" value="Other">
+        <label for="other">Other</label><br>
+
+        <p><b>Item Location*</b></p>
+        <input type="radio" id="sf" name="city" value="San Francisco">
+        <label for="sf">San Francisco</label><br>
+        <input type="radio" id="seoul" name="city" value="Seoul">
+        <label for="seoul">Seoul</label><br>
+        <input type="radio" id="berlin" name="city" value="Berlin">
+        <label for="berlin">Berlin</label><br>
+        <input type="radio" id="london" name="city" value="London">
+        <label for="london">London</label><br>
+        <input type="radio" id="ba" name="city" value="Buenos Aires">
+        <label for="ba">Buenos Aires</label><br>
+        <input type="radio" id="taipei" name="city" value="Taipei">
+        <label for="taipei">Taipei</label><br>
+        <input type="radio" id="hyderabad" name="city" value="Hyderabad">
+        <label for="hyderabad">Hyderabad</label><br>
+
+        <p><b>Shelf life</b><br>
+            <input type="text" name="shelf">
+        </p>
+
+        <p><b>New or Used*</b></p>
+        <input type="radio" id="new" name="state" value="New">
+        <label for="new">New</label><br>
+        <input type="radio" id="used" name="state" value="Used">
+        <label for="used">Used</label><br>
+
+        <br><br>
+        <input type="submit" value="Post Item">
+        <br><br><br>
+    </form>
+{% endblock %}

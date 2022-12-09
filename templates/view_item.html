@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}View Item{% endblock %}
+{% block body %}
+    {% if user_id == seller.user_id and item.item_status != "NR" %}
+        {% if item.item_status == "R" %}
+            <h2>"{{buyer.user_name}}" has requested this item!!</h2>
+        {% else %}
+            <h2>You approved request from "{{buyer.user_name}}." User's contact details available</h2>
+        {% endif %}
+        <h4>Requester Info</h4>
+        <p>
+            <b>Name</b>: {{buyer.user_name}} <br> 
+            <b>Class</b>: {{buyer.user_class}} <br>
+            <b>Current city</b>: {{buyer.user_city}} <br>
+            <b>About</b>: <br><textarea cols="30" rows="4" readonly>{{buyer.user_about_me}}</textarea> <br>
+
+            {% if item.item_status == "A" %}
+                <b>Phone No.</b>: {{buyer.user_phone_no}} <br> 
+                <b>Email</b>: {{buyer.user_email}} <br>
+                <b>Preferred MoC</b>: {{buyer.user_pmoc}} <br>
+                <b>Other</b>: <br><textarea cols="30" rows="4" readonly>{{buyer.user_oci}}</textarea> <br>
+            {% endif %}
+
+            {% if item.item_status == "R" %}
+                <button><a href="{{ url_for('approve', id=item.item_id) }}">Accept</a></button>
+            {% endif %}
+
+            <button><a href="{{ url_for('unreq', id=item.item_id) }}">Decline</a></button> <br><br>
+        </p>
+    {% endif %}
+
+    {% if user_id == buyer.user_id and item.item_status == "A" %}
+        <h2>"{{seller.user_name}}" has approved your request. Seller's contact details available</h2>
+    {% endif %}
+
+    <h2>Viewing {{item.item_name}}!!</h2>
+    <h4>Item Details</h4>
+    <p>
+        <b>Name</b>: {{item.item_name}} <br> 
+        <b>Price</b>: {{item.item_price}} <br>
+        <b>Description</b>: <br><textarea cols="30" rows="4" readonly>{{item.item_description}}</textarea> <br>
+        <b>Location</b>: {{item.item_location}} <br>
+        <b>Category</b>: {{item.item_category}} <br>
+        <b>Date Posted</b>: {{item.date_posted.date()}} <br>
+        <b>Shelf Life</b>: 
+            {% if not item.item_shelflife %}
+                N/A
+            {% else %}
+                {{item.item_shelflife}}
+            {% endif %}
+        <br>
+        <b>New/Used</b>: {{item.item_state}} <br>
+    </p> <br>
+
+    <h4>Seller Details</h4>
+    <p>
+        <b>Name</b>: {{seller.user_name}} <br> 
+        <b>Class</b>: {{seller.user_class}} <br>
+        <b>Current city</b>: {{seller.user_city}} <br>
+        <b>About</b>: <br><textarea cols="30" rows="4" readonly>{{seller.user_about_me}}</textarea> <br>
+        {% if user_id == buyer.user_id and item.item_status == "A" %}
+            <b>Phone No.</b>: {{seller.user_phone_no}}<br> 
+            <b>Email</b>: {{seller.user_email}} <br>
+            <b>Preferred MoC</b>: {{seller.user_pmoc}} <br>
+            <b>Other</b>: <br><textarea cols="30" rows="4" readonly>{{seller.user_oci}}</textarea> <br>
+        {% endif %}
+    </p>
+        
+    {% if user_id != seller.user_id and item.item_status == "NR" %}
+        <button><a href="{{ url_for('req', id=item.item_id) }}">Request</a></button> <br><br>
+    {% endif %}
+
+    {% if user_id == buyer.user_id and item.item_status != "NR" %}
+        <button><a href="{{ url_for('unreq', id=item.item_id) }}">Remove</a></button> <br><br>
+    {% endif %}
+{% endblock %}

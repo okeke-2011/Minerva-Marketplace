@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Users DB{% endblock %}
+{% block body %}
+    <!-- <form action="#" method = "post">
+        <p>Username<br>
+            <input type="text", name="new_name" placeholder = {{usr.user_name}}>
+            <input type="submit" value="edit">
+        </p>
+    </form>
+
+    <form action="#" method = "post">
+        <p>Password:<br>
+            <input type="text", name="new_password" placeholder = {{usr.password}}>
+            <input type="submit" value="edit">
+        </p>
+    </form> -->
+
+    <button><a href="{{ url_for('create_user') }}">Edit</a></button>
+    <p>
+        <b>About</b>: <br><textarea cols="30" rows="4" readonly>{{usr.user_about_me}}</textarea> <br>
+        <b>Name</b>: {{usr.user_name}} <br> 
+        <b>Class</b>: {{usr.user_class}} <br>
+        <b>Current city</b>: {{usr.user_city}} <br>
+        <b>Email</b>: {{usr.user_email}} <br>
+        <b>Phone No.</b>: {{usr.user_phone_no}} <br>
+        <b>Preferred mode of communication</b>: {{usr.user_pmoc}} <br>
+        <b>Other contact info</b>: <br><textarea cols="30" rows="4" readonly>{{usr.user_oci}}</textarea> <br>
+    </p>
+
+{% endblock %}

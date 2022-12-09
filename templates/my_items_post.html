@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Tasks{% endblock %}
+{% block body %}
+    <a href="{{url_for('create_item')}}">
+        <input type="button" value="Post item">
+    </a>
+    {% if not items %}
+        <h5>No posts yet. Add a post with the "Post Item" button</h5>
+    {% endif %}
+    <ul>
+        {% for item in items %}
+            <li>
+                <p>
+                    Requester: {{item.user_name}} <br>
+                    Item Name: {{item.item_name}} <br> 
+                    Price: {{item.item_price}} <br>
+                    Status:
+                    {% if item.item_status == "NR" %}
+                        Not Requested
+                    {% endif %}
+
+                    {% if item.item_status == "R" %}
+                        Requested
+                    {% endif %}
+
+                    {% if item.item_status == "A" %}
+                        Approved
+                    {% endif %} <br>
+                    <button><a href="{{ url_for('view_item', id=item.item_id) }}">View</a></button>
+                    <button><a href="{{ url_for('delete', id=item.item_id) }}">Delete</a></button>
+                </p>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

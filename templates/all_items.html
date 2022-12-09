@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Tasks{% endblock %}
+{% block body %}
+    <form action="#" method = "post">
+        <p><b>Category</b></p>
+        <input type="checkbox" id="kitchen" name="cat1" value="Kitchen">
+        <label for="kitchen">Kitchen</label>
+        <input type="checkbox" id="furniture" name="cat2" value="Furniture">
+        <label for="furniture">Furniture</label>
+        <input type="checkbox" id="device" name="cat3" value="Device">
+        <label for="device">Device</label><br>
+        <input type="checkbox" id="clothing" name="cat4" value="Clothing">
+        <label for="clothing">Clothing</label>
+        <input type="checkbox" id="books" name="cat5" value="Books">
+        <label for="books">Books</label>
+        <input type="checkbox" id="other" name="cat6" value="Other">
+        <label for="other">Other</label>
+        <input type="checkbox" id="all" name="cat7" value="All" checked="true">
+        <label for="all">All</label>
+
+        <p><b>Item Location</b></p>
+        <input type="checkbox" id="sf" name="city1" value="San Francisco">
+        <label for="sf">San Francisco</label>
+        <input type="checkbox" id="seoul" name="city2" value="Seoul">
+        <label for="seoul">Seoul</label>
+        <input type="checkbox" id="berlin" name="city3" value="Berlin">
+        <label for="berlin">Berlin</label>
+        <input type="checkbox" id="london" name="city4" value="London">
+        <label for="london">London</label><br>
+        <input type="checkbox" id="ba" name="city5" value="Buenos Aires">
+        <label for="ba">Buenos Aires</label>
+        <input type="checkbox" id="taipei" name="city6" value="Taipei">
+        <label for="taipei">Taipei</label>
+        <input type="checkbox" id="hyderabad" name="city7" value="Hyderabad">
+        <label for="hyderabad">Hyderabad</label>
+        <input type="checkbox" id="all" name="city8" value="All" checked="true">
+        <label for="all">All</label>
+
+        <p><b>Date Posted</b></p>
+        <input type="radio" id="day" name="posted" value="Past Day">
+        <label for="day">Past Day</label>
+        <input type="radio" id="week" name="posted" value="Past Week">
+        <label for="week">Past Week</label>
+        <input type="radio" id="month" name="posted" value="Past Month">
+        <label for="month">Past Month</label><br>
+        <input type="radio" id="year" name="posted" value="Past Year">
+        <label for="year">Past year</label>
+        <input type="radio" id="all" name="posted" value="All time" checked="true">
+        <label for="all">All time</label>
+
+        <br>
+        <input type="submit" value="Apply">
+        <br><br>
+    </form>
+    <ul>
+        {% for item in items %}
+            <li>
+                <p>
+                    Seller: {{item.user_name}} <br>
+                    Item Name: {{item.item_name}} <br> 
+                    Price: {{item.item_price}} <br>
+                    <button><a href="{{ url_for('view_item', id=item.item_id) }}">View</a></button>
+                </p>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}
