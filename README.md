@@ -2,7 +2,7 @@
 
 Start virtual environment
 
-    $ python -m venv venv
+    $ python3 -m venv venv
     $ source venv/bin/activate
 
 Install necessary dependencies
@@ -11,6 +11,6 @@ Install necessary dependencies
 
 Start flask server (from the root directory)
 
-    $ python app.py
+    $ python3 app.py
 
-Your Kanban board should be up and running at http://127.0.0.1:5000/
+The app should be up and running at http://127.0.0.1:5000/
