@@ -1,50 +1,50 @@
 <!--Extends functionality of base.html-->
 {% extends "base.html" %}
-{% block title %}Login{% endblock %}
-<!--Styling for the login page-->
-{% block style %}
-    body{
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: flex-end;
-        height: 100%;
-        /*background-color: #f2f2f2 !important;*/
-    }
-    .form-div{
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        /*border: 2px solid pink;*/
-        height: 500px;
-        width: 100%;
-    }
-    form{
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        margin-top: 10%;
-        width: 500px;
-        border: 1px ridge black;
-        border-radius: 15px;
-        height: 300px;
-        background-color: #e6e6e6;
-    }
-    form p{
-        text-align: center;
-    }
-
-{% endblock %}
+{% block title %}Sign Up{% endblock %}
 {% block body %}
-    <!--Login form-->
-    <div class="form-div">
-    <form action = "#" method="post">
-        <p>Email<br><input type="text" name="user_email" placeholder="Enter email"></p>
-        <p>Password<br><input type="password" name="password" placeholder="Enter Password"></p>
-        <p>Confirm Password<br><input type="password" name="conf_password" placeholder="Reenter Password"></p>
-        <input type="submit" value="submit">
-    </form>
+    <div class="ui placeholder segment" style="margin-top: 100px; margin-left: 350px; margin-right: 350px;">
+        <div class="ui two column very relaxed stackable grid">
+            <div class="column">
+                <form class="ui form" action = "#" method="post">
+                    <div class="field">
+                        <label>Email</label>
+                        <div class="ui left icon input">
+                            <input type="text" placeholder="Enter email" name="user_email">
+                            <i class="user icon"></i>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>Password</label>
+                        <div class="ui left icon input">
+                            <input type="password" placeholder="Enter password" name="password">
+                            <i class="lock icon"></i>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>Confirm Password</label>
+                        <div class="ui left icon input">
+                            <input type="password" placeholder="Reenter password" name="conf_password">
+                            <i class="lock icon"></i>
+                        </div>
+                    </div>
+
+                    <button class="fluid ui primary button" type="submit">Sign Up</button>
+                </form>
+            </div>
+
+            <div class="middle aligned column">
+                <a href="{{url_for('login')}}">
+                    <div class="ui big button">
+                        <i class="user icon"></i>
+                        Login
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div class="ui vertical divider">
+            Or
+        </div>
     </div>
-    <p>Already have an account? <a href="{{url_for('login')}}">Login</a></p>
 {% endblock %}

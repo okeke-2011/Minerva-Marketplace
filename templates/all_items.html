@@ -1,67 +1,157 @@
 {% extends "base.html" %}
-{% block title %}Tasks{% endblock %}
+{% block title %}Home{% endblock %}
 {% block body %}
-    <form action="#" method = "post">
-        <p><b>Category</b></p>
-        <input type="checkbox" id="kitchen" name="cat1" value="Kitchen">
-        <label for="kitchen">Kitchen</label>
-        <input type="checkbox" id="furniture" name="cat2" value="Furniture">
-        <label for="furniture">Furniture</label>
-        <input type="checkbox" id="device" name="cat3" value="Device">
-        <label for="device">Device</label><br>
-        <input type="checkbox" id="clothing" name="cat4" value="Clothing">
-        <label for="clothing">Clothing</label>
-        <input type="checkbox" id="books" name="cat5" value="Books">
-        <label for="books">Books</label>
-        <input type="checkbox" id="other" name="cat6" value="Other">
-        <label for="other">Other</label>
-        <input type="checkbox" id="all" name="cat7" value="All" checked="true">
-        <label for="all">All</label>
+    <script>$('.ui.checkbox').checkbox();</script>
 
-        <p><b>Item Location</b></p>
-        <input type="checkbox" id="sf" name="city1" value="San Francisco">
-        <label for="sf">San Francisco</label>
-        <input type="checkbox" id="seoul" name="city2" value="Seoul">
-        <label for="seoul">Seoul</label>
-        <input type="checkbox" id="berlin" name="city3" value="Berlin">
-        <label for="berlin">Berlin</label>
-        <input type="checkbox" id="london" name="city4" value="London">
-        <label for="london">London</label><br>
-        <input type="checkbox" id="ba" name="city5" value="Buenos Aires">
-        <label for="ba">Buenos Aires</label>
-        <input type="checkbox" id="taipei" name="city6" value="Taipei">
-        <label for="taipei">Taipei</label>
-        <input type="checkbox" id="hyderabad" name="city7" value="Hyderabad">
-        <label for="hyderabad">Hyderabad</label>
-        <input type="checkbox" id="all" name="city8" value="All" checked="true">
-        <label for="all">All</label>
+    <div class="ui grid" style="margin-left: 10px; margin-right: 10px;">
+        <div class="four wide column">
+            <form class="ui form" action="#" method = "post">
+                <div class="ui fluid input">
+                    <input type="text" placeholder="Search..." name="search">
+                </div>
+                <div class="ui segment">
+                    <h4 class="ui header">Category</h4>
+                    <div class="ui basic two column grid segment">
+                        <div class="column">
+                            <div class="ui checkbox">
+                                <input type="checkbox" name="cat1" value="Kitchen">
+                                <label>Kitchen</label>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <div class="ui checkbox">
+                                <input type="checkbox" name="cat2" value="Furniture">
+                                <label>Furniture</label>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <div class="ui checkbox">
+                                <input type="checkbox" name="cat3" value="Device">
+                                <label>Device</label>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <div class="ui checkbox">
+                                <input type="checkbox" name="cat4" value="Clothing">
+                                <label>Clothing</label>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <div class="ui checkbox">
+                                <input type="checkbox" name="cat5" value="Books">
+                                <label>Books</label>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <div class="ui checkbox">
+                                <input type="checkbox" name="cat6" value="Other">
+                                <label>Other</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-        <p><b>Date Posted</b></p>
-        <input type="radio" id="day" name="posted" value="Past Day">
-        <label for="day">Past Day</label>
-        <input type="radio" id="week" name="posted" value="Past Week">
-        <label for="week">Past Week</label>
-        <input type="radio" id="month" name="posted" value="Past Month">
-        <label for="month">Past Month</label><br>
-        <input type="radio" id="year" name="posted" value="Past Year">
-        <label for="year">Past year</label>
-        <input type="radio" id="all" name="posted" value="All time" checked="true">
-        <label for="all">All time</label>
+                <div class="ui segment">
+                    <h4 class="ui header">Item Location</h4>
+                    <div class="ui basic two column grid segment">
+                        <div class="column">
+                            <div class="ui checkbox">
+                                <input type="checkbox" name="city1" value="San Francisco">
+                                <label>SF</label>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <div class="ui checkbox">
+                                <input type="checkbox" name="city2" value="Seoul">
+                                <label>Seoul</label>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <div class="ui checkbox">
+                                <input type="checkbox" name="city3" value="Berlin">
+                                <label>Berlin</label>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <div class="ui checkbox">
+                                <input type="checkbox" name="city4" value="London">
+                                <label>London</label>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <div class="ui checkbox">
+                                <input type="checkbox" name="city5" value="Buenos Aires">
+                                <label>BA</label>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <div class="ui checkbox">
+                                <input type="checkbox" name="city6" value="Taipei">
+                                <label>Taipei</label>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <div class="ui checkbox">
+                                <input type="checkbox" name="city7" value="Hyderabad">
+                                <label>Hyderabad</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-        <br>
-        <input type="submit" value="Apply">
-        <br><br>
-    </form>
-    <ul>
-        {% for item in items %}
-            <li>
-                <p>
-                    Seller: {{item.user_name}} <br>
-                    Item Name: {{item.item_name}} <br> 
-                    Price: {{item.item_price}} <br>
-                    <button><a href="{{ url_for('view_item', id=item.item_id) }}">View</a></button>
-                </p>
-            </li>
-        {% endfor %}
-    </ul>
+                <div class="ui segment">
+                    <h4 class="ui header">Date Posted</h4>
+                    <div class="ui basic one column grid segment">
+                        <div class="column">
+                            <div class="ui radio checkbox">
+                                <input type="radio" name="posted" value="Past Day">
+                                <label>Past Day</label>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <div class="ui radio checkbox">
+                                <input type="radio" name="posted" value="Past Week">
+                                <label>Past Week</label>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <div class="ui radio checkbox">
+                                <input type="radio" name="posted" value="Past Month">
+                                <label>Past Month</label>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <div class="ui radio checkbox">
+                                <input type="radio" name="posted" value="Past Year">
+                                <label>Past Year</label>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <div class="ui radio checkbox">
+                                <input type="radio" name="posted" value="All time" checked="">
+                                <label>All time</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="fluid ui primary button" type="submit">Apply</button>
+            </form>
+        </div> 
+
+        <div class="twelve wide column">
+            <div class="ui four cards">
+                {% for item in items %}
+                    <a class="card" href="{{ url_for('view_item', id=item.item_id) }}">
+                        <img class="ui small centered image" src="/static/placeholder.png" style="margin-top: 15px; margin-bottom: 5px;">
+                        <div class="extra">
+                            Seller: {{item.user_name}} <br>
+                            Item Name: {{item.item_name}} <br> 
+                            Price: {{item.item_price}} <br>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
 {% endblock %}

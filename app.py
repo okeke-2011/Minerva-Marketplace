@@ -2,6 +2,7 @@
 import datetime
 from flask import Flask, redirect, url_for, render_template, request, session, flash
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import or_
 
 # set up the app and database
 app = Flask(__name__)
@@ -64,7 +65,6 @@ class Items(db.Model):
         self.item_price = price
         self.item_pic = pic
 
-# login page
 @app.route("/", methods = ["POST", "GET"])
 def login():
     if request.method == "POST":
@@ -127,12 +127,16 @@ def all_items():
         filter(Items.item_status == "NR")
 
     if request.method == "POST":
-        cats = [request.form[f"cat{i+1}"] for i in range(7) if f"cat{i+1}" in request.form]
-        cities = [request.form[f"city{i+1}"] for i in range(8) if f"city{i+1}" in request.form]
-        if "All" not in cats:
+        cats = [request.form[f"cat{i+1}"] for i in range(6) if f"cat{i+1}" in request.form]
+        cities = [request.form[f"city{i+1}"] for i in range(7) if f"city{i+1}" in request.form]
+        if cats:
             items = items.filter(Items.item_category.in_(cats))
-        if "All" not in cities:
+        if cities:
             items = items.filter(Items.item_location.in_(cities))
+        if request.form["search"]:
+            items = items.filter(or_(
+                Items.item_name.ilike(f'%{request.form["search"]}%'), 
+                Users.user_name.ilike(f'%{request.form["search"]}%')))
 
         target_date = None
         if request.form["posted"] == "Past Day":
@@ -156,13 +160,22 @@ def my_items_post():
         flash("You need to log in!")
         return redirect(url_for("login"))
 
-    # database data to populate the tasks page
     user_id = Users.query.filter_by(user_email=session["user_email"]).first().user_id
-    items = db.session.query(Items.item_id, Items.item_name, Items.item_price, Items.item_status, Users.user_name).\
+    all_statuses = db.session.query(Items.item_id, Items.item_name, Items.item_price, Items.item_status, Users.user_name).\
         join(Users, Users.user_id == Items.requester_id, isouter=True).\
         filter(Items.poster_id == user_id).\
         order_by(Items.date_posted.desc()).all()
-    return render_template("my_items_post.html", items=items)
+
+    all_items = [("Not Requested", []), ("Requested", []), ("Approved", [])]
+    for item in all_statuses:
+        if item.item_status == "NR":
+            all_items[0][1].append(item)
+        elif item.item_status == "R":
+            all_items[1][1].append(item)
+        elif item.item_status == "A":
+            all_items[2][1].append(item)
+
+    return render_template("my_items_post.html", all_items=all_items)
 
 @app.route("/my_items_reqs", methods = ["POST", "GET"])
 def my_items_reqs():
@@ -170,13 +183,20 @@ def my_items_reqs():
         flash("You need to log in!")
         return redirect(url_for("login"))
 
-    # database data to populate the tasks page
     user_id = Users.query.filter_by(user_email=session["user_email"]).first().user_id
-    items = db.session.query(Items.item_id, Items.item_name, Items.item_price, Items.item_status, Users.user_name).\
+    all_statuses = db.session.query(Items.item_id, Items.item_name, Items.item_price, Items.item_status, Users.user_name).\
         join(Users, Users.user_id == Items.poster_id, isouter=True).\
         filter(Items.requester_id == user_id).\
         order_by(Items.date_posted.desc()).all()
-    return render_template("my_items_reqs.html", items=items)
+
+    all_items = [("Requested", []), ("Approved", [])]
+    for item in all_statuses:
+        if item.item_status == "R":
+            all_items[0][1].append(item)
+        elif item.item_status == "A":
+            all_items[1][1].append(item)
+
+    return render_template("my_items_reqs.html", all_items=all_items)
 
 @app.route("/create_user", methods = ["POST", "GET"])
 def create_user():
@@ -215,7 +235,7 @@ def create_user():
             usr.user_oci=request.form["oci"]
 
             db.session.commit()
-            flash(f"Edited profile for {session['email']}.")
+            flash(f"Edited profile for {session['user_email']}.")
             return redirect(url_for("user_info"))
     return render_template("create_user.html", user=user)
 
@@ -294,17 +314,15 @@ def view_item(id):
 @app.route("/show_db")
 def show_db():
     all_users = Users.query.all()
-    all_tasks = Items.query.all()
-    return render_template("show_db.html", all_users = all_users, all_tasks = all_tasks)
+    all_items = Items.query.all()
+    return render_template("show_db.html", all_users = all_users, all_items = all_items)
 
 @app.route("/logout")
 def logout():
-    # delete all the session data
     if "user_email" in session:
         flash(f"Signed {session['user_email']} out")
         session.pop("user_email", None)
         session.pop("password", None)
-    # send the user to the login page
     return redirect(url_for("login"))
 
 if __name__ == "__main__":

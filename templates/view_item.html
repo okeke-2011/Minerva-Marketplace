@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}View Item{% endblock %}
 {% block body %}
-    {% if user_id == seller.user_id and item.item_status != "NR" %}
+    <!-- {% if user_id == seller.user_id and item.item_status != "NR" %}
         {% if item.item_status == "R" %}
             <h2>"{{buyer.user_name}}" has requested this item!!</h2>
         {% else %}
@@ -31,10 +31,232 @@
 
     {% if user_id == buyer.user_id and item.item_status == "A" %}
         <h2>"{{seller.user_name}}" has approved your request. Seller's contact details available</h2>
+    {% endif %} -->
+
+    {% if user_id == seller.user_id and item.item_status != "NR" %}
+        {% if item.item_status == "R" %}
+            <div class="ui basic center aligned segment">
+                <h3 class="ui blue header">
+                    "{{buyer.user_name}}" has requested this item!!
+                </h3>
+            </div>
+            <!-- <h2>"{{buyer.user_name}}" has requested this item!!</h2> -->
+        {% else %}
+            <div class="ui basic center aligned segment">
+                <h3 class="ui green header">
+                    You approved request from "{{buyer.user_name}}." User's contact details are now available.
+                </h3>
+            </div>
+            <!-- <h2>You approved request from "{{buyer.user_name}}." User's contact details available</h2> -->
+        {% endif %}
+        <div class="ui grid" style="margin-left: 50px; margin-right: 50px;">
+            <div class="four wide column"></div>
+            <div class="eight wide column">
+                <div>
+                    <h2 class="ui basic center aligned header">Requester Info</h2>
+                </div>
+                <div class="ui basic segment">
+                    <img class="ui medium circular centered image" src="/static/female_avatar.png" style="margin-top: 5px; margin-bottom: 5px;">
+                </div>
+                <table class="ui definition table">
+                    <tbody>
+                        <tr>
+                            <td class="three wide column">Name</td>
+                            <td>{{buyer.user_name}}</td>
+                        </tr>
+                        <tr>
+                            <td>Class</td>
+                            <td>{{buyer.user_class}}</td>
+                        </tr>
+                        <tr>
+                            <td>Current city</td>
+                            <td>{{buyer.user_city}}</td>
+                        </tr>
+                        <tr>
+                            <td>About me</td>
+                            <td>{{buyer.user_about_me}}</td>
+                        </tr>
+                        {% if item.item_status == "A" %}
+                            <tr>
+                                <td>Email</td>
+                                <td>{{buyer.user_email}}</td>
+                            </tr>
+                            <tr>
+                                <td>Phone No.</td>
+                                <td>{{buyer.user_phone_no}}</td>
+                            </tr>
+                            <tr>
+                                <td>Preferred mode of communication</td>
+                                <td>{{buyer.user_pmoc}}</td>
+                            </tr>
+                            <tr>
+                                <td>Other contact info</td>
+                                <td>{{buyer.user_oci}}</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="ui basic center aligned segment" style="margin-bottom: 50px;">
+            {% if item.item_status == "R" %}
+                <a href="{{ url_for('approve', id=item.item_id) }}">
+                    <button class="ui blue button">Accept</button>
+                </a>
+            {% endif %}
+    
+            <a href="{{ url_for('unreq', id=item.item_id) }}">
+                <button class="ui red button">Decline</button>
+            </a>
+        </div>
     {% endif %}
 
-    <h2>Viewing {{item.item_name}}!!</h2>
-    <h4>Item Details</h4>
+    <!-- {% if item.item_status == "R" %}
+        <button><a href="{{ url_for('approve', id=item.item_id) }}">Accept</a></button>
+    {% endif %} -->
+
+    <!-- <button><a href="{{ url_for('unreq', id=item.item_id) }}">Decline</a></button> <br><br> -->
+
+    <!-- <h2>Viewing {{item.item_name}}!!</h2> -->
+    {% if user_id == buyer.user_id and item.item_status == "A" %}
+        <div class="ui basic center aligned segment">
+            <h3 class="ui green header">
+                "{{seller.user_name}}" has approved your request. Thier contact details are now available.
+            </h3>
+        </div>
+    {% elif user_id == buyer.user_id and item.item_status == "R" %}
+        <div class="ui basic center aligned segment">
+            <h3 class="ui orange header">
+                "{{seller.user_name}}" is yet to approve your request for this item
+            </h3>
+        </div>
+    {% endif %}
+
+    {% if user_id != seller.user_id and item.item_status == "NR" %}
+        <div class="ui basic center aligned segment">
+            <a href="{{ url_for('req', id=item.item_id) }}">
+                <button class="ui button">Request Item</button>
+            </a>
+        </div>
+    {% endif %}
+
+    {% if user_id == buyer.user_id and item.item_status != "NR" %}
+        <div class="ui basic center aligned segment">
+            <a href="{{ url_for('unreq', id=item.item_id) }}">
+                <button class="ui button">Remove Item</button>
+            </a>
+        </div>
+    {% endif %}
+
+    <div class="ui grid" style="margin-left: 30px; margin-right: 30px;">
+        <div class="eight wide column">
+            <div>
+                <h2 class="ui basic center aligned header">Seller Details</h2>
+            </div>
+            <div class="ui basic segment">
+                <img class="ui small circular centered image" src="/static/male_avatar.png" style="margin-top: 40px; margin-bottom: 5px;">
+            </div>
+        </div>
+        <div class="eight wide column">
+            <div>
+                <h2 class="ui basic center aligned header">Item Details</h2>
+            </div>
+            <div class="ui basic segment">
+                <img class="ui medium rounded centered image" src="/static/placeholder.png" style="margin-top: 5px; margin-bottom: 5px;">
+            </div>
+        </div>
+    </div>
+
+    <div class="ui grid" style="margin-left: 30px; margin-right: 30px;">
+        <div class="eight wide column">
+            <table class="ui definition table">
+                <tbody>
+                    <tr>
+                        <td class="three wide column">Name</td>
+                        <td>{{seller.user_name}}</td>
+                    </tr>
+                    <tr>
+                        <td>Class</td>
+                        <td>{{seller.user_class}}</td>
+                    </tr>
+                    <tr>
+                        <td>Current city</td>
+                        <td>{{seller.user_city}}</td>
+                    </tr>
+                    <tr>
+                        <td>About me</td>
+                        <td>{{seller.user_about_me}}</td>
+                    </tr>
+                    {% if user_id == buyer.user_id and item.item_status == "A" %}
+                        <tr>
+                            <td>Email</td>
+                            <td>{{seller.user_email}}</td>
+                        </tr>
+                        <tr>
+                            <td>Phone No.</td>
+                            <td>{{seller.user_phone_no}}</td>
+                        </tr>
+                        <tr>
+                            <td>Preferred mode of communication</td>
+                            <td>{{seller.user_pmoc}}</td>
+                        </tr>
+                        <tr>
+                            <td>Other contact info</td>
+                            <td>{{seller.user_oci}}</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="eight wide column">
+            <table class="ui definition table">
+                <tbody>
+                    <tr>
+                        <td class="three wide column">Name</td>
+                        <td>{{item.item_name}}</td>
+                    </tr>
+                    <tr>
+                        <td>Price</td>
+                        <td>{{item.item_price}}</td>
+                    </tr>
+                    <tr>
+                        <td>Description</td>
+                        <td>{{item.item_description}}</td>
+                    </tr>
+                    <tr>
+                        <td>Location</td>
+                        <td>{{item.item_location}}</td>
+                    </tr>
+                    <tr>
+                        <td>Category</td>
+                        <td>{{item.item_category}}</td>
+                    </tr>
+                    <tr>
+                        <td>Date Posted</td>
+                        <td>{{item.date_posted.date()}}</td>
+                    </tr>
+                    <tr>
+                        <td>Shelf Life</td>
+                        <td>
+                            {% if not item.item_shelflife %}
+                                N/A
+                            {% else %}
+                                {{item.item_shelflife}}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>New/Used</td>
+                        <td>{{item.item_state}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- <h4>Item Details</h4>
     <p>
         <b>Name</b>: {{item.item_name}} <br> 
         <b>Price</b>: {{item.item_price}} <br>
@@ -64,13 +286,25 @@
             <b>Preferred MoC</b>: {{seller.user_pmoc}} <br>
             <b>Other</b>: <br><textarea cols="30" rows="4" readonly>{{seller.user_oci}}</textarea> <br>
         {% endif %}
-    </p>
+    </p> -->
         
     {% if user_id != seller.user_id and item.item_status == "NR" %}
-        <button><a href="{{ url_for('req', id=item.item_id) }}">Request</a></button> <br><br>
+        <div class="ui basic center aligned segment">
+            <a href="{{ url_for('req', id=item.item_id) }}">
+                <button class="ui button">Request Item</button>
+            </a>
+        </div>
     {% endif %}
 
     {% if user_id == buyer.user_id and item.item_status != "NR" %}
-        <button><a href="{{ url_for('unreq', id=item.item_id) }}">Remove</a></button> <br><br>
+        <div class="ui basic center aligned segment">
+            <a href="{{ url_for('unreq', id=item.item_id) }}">
+                <button class="ui button">Remove Item</button>
+            </a>
+        </div>
     {% endif %}
+
+    <!-- {% if user_id == buyer.user_id and item.item_status != "NR" %}
+        <button><a href="{{ url_for('unreq', id=item.item_id) }}">Remove</a></button> <br><br>
+    {% endif %} -->
 {% endblock %}

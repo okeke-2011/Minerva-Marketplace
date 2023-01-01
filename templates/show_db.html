@@ -1,12 +1,71 @@
-<!--Shows all DB entries-->
 {% extends "base.html" %}
 {% block title %}Users DB{% endblock %}
 {% block body %}
-    {% for user in all_users %}
-        <p>USER_ID: {{user.user_id}}, NAME: {{user.user_name}}, PASSWORD: {{user.password}}, EMAIL: {{user.user_email}}</p>
-    {% endfor %}
-    <br>
-    {% for task in all_tasks %}
-        <p>ITEM_ID: {{task.item_id}}, USER_IDS: {{task.poster_id, task.requester_id}}, STATUS: {{task.item_status}}, DESCRIPTION: {{task.item_description}}, PRICE: {{task.item_price}}</p>
-    {% endfor %}
+    <div class="ui basic center aligned segment" style="margin-top: 10px;">
+        <h2 class="ui header">All Users</h2>
+    </div>
+    <table class="ui celled table" style="margin-left: 10px; margin-right: 10px;">
+        <thead>
+            <tr><th>ID</th>
+            <th>Name</th>
+            <th>Password</th>
+            <th>Email</th>
+            <th>Class</th>
+            <th>City</th>
+            <th>About me</th>
+        </tr></thead>
+        <tbody>
+            {% for user in all_users %}
+                <tr>
+                    <td data-label="ID">{{user.user_id}}</td>
+                    <td data-label="Name">{{user.user_name}}</td>
+                    <td data-label="Password">{{user.password}}</td>
+                    <td data-label="Email">{{user.user_email}}</td>
+                    <td data-label="Class">{{user.user_class}}</td>
+                    <td data-label="City">{{user.user_city}}</td>
+                    <td data-label="About me">{{user.user_about_me}}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="ui basic center aligned segment" style="margin-top: 10px;">
+        <h2 class="ui header">All Items</h2>
+    </div>
+    <table class="ui celled table" style="margin-left: 10px; margin-right: 10px;">
+        <thead>
+            <tr><th>ID</th>
+            <th>Name</th>
+            <th>Poster</th>
+            <th>Requester</th>
+            <th>Status</th>
+            <th>Location</th>
+            <th>Category</th>
+            <th>Date Posted</th>
+            <th>Price</th>
+            <th>State</th>
+        </tr></thead>
+        <tbody>
+            {% for item in all_items %}
+                <tr>
+                    <td data-label="ID">{{item.item_id}}</td>
+                    <td data-label="Name">{{item.item_name}}</td>
+                    <td data-label="Poster">{{all_users[item.poster_id-1].user_name}}</td>
+                    <td data-label="Requester">
+                        {% if item.requester_id != -1 %}
+                            {{all_users[item.requester_id-1].user_name}}
+                        {% else %}
+                            None
+                        {% endif %}
+                    </td>
+                    <td data-label="Status">{{item.item_status}}</td>
+                    <td data-label="Location">{{item.item_location}}</td>
+                    <td data-label="Category">{{item.item_category}}</td>
+                    <td data-label="Date Posted">{{item.date_posted.date()}}</td>
+                    <td data-label="Price">{{item.item_price}}</td>
+                    <td data-label="State">{{item.item_state}}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 {% endblock %}

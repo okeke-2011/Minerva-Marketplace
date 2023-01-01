@@ -1,30 +1,54 @@
 {% extends "base.html" %}
-{% block title %}Users DB{% endblock %}
+{% block title %}Users Info{% endblock %}
 {% block body %}
-    <!-- <form action="#" method = "post">
-        <p>Username<br>
-            <input type="text", name="new_name" placeholder = {{usr.user_name}}>
-            <input type="submit" value="edit">
-        </p>
-    </form>
+    <div class="ui right aligned basic segment">
+        <a href="{{ url_for('create_user') }}">
+            <button class="ui button">Edit Info</button>
+        </a>
+    </div>
 
-    <form action="#" method = "post">
-        <p>Password:<br>
-            <input type="text", name="new_password" placeholder = {{usr.password}}>
-            <input type="submit" value="edit">
-        </p>
-    </form> -->
+    <div class="ui grid" style="margin-left: 50px; margin-right: 50px;">
+        <div class="eight wide column">
+            <table class="ui definition table">
+                <tbody>
+                    <tr>
+                        <td class="three wide column">About me</td>
+                        <td>{{usr.user_about_me}}</td>
+                    </tr>
+                    <tr>
+                        <td>Name</td>
+                        <td>{{usr.user_name}}</td>
+                    </tr>
+                    <tr>
+                        <td>Class</td>
+                        <td>{{usr.user_class}}</td>
+                    </tr>
+                    <tr>
+                        <td>Current city</td>
+                        <td>{{usr.user_city}}</td>
+                    </tr>
+                    <tr>
+                        <td>Email</td>
+                        <td>{{usr.user_email}}</td>
+                    </tr>
+                    <tr>
+                        <td>Phone No.</td>
+                        <td>{{usr.user_phone_no}}</td>
+                    </tr>
+                    <tr>
+                        <td>Preferred mode of communication</td>
+                        <td>{{usr.user_pmoc}}</td>
+                    </tr>
+                    <tr>
+                        <td>Other contact info</td>
+                        <td>{{usr.user_oci}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
-    <button><a href="{{ url_for('create_user') }}">Edit</a></button>
-    <p>
-        <b>About</b>: <br><textarea cols="30" rows="4" readonly>{{usr.user_about_me}}</textarea> <br>
-        <b>Name</b>: {{usr.user_name}} <br> 
-        <b>Class</b>: {{usr.user_class}} <br>
-        <b>Current city</b>: {{usr.user_city}} <br>
-        <b>Email</b>: {{usr.user_email}} <br>
-        <b>Phone No.</b>: {{usr.user_phone_no}} <br>
-        <b>Preferred mode of communication</b>: {{usr.user_pmoc}} <br>
-        <b>Other contact info</b>: <br><textarea cols="30" rows="4" readonly>{{usr.user_oci}}</textarea> <br>
-    </p>
-
+        <div class="six wide column">
+            <img class="ui circular small centered image" src="/static/male_avatar.png" style="margin-top: 100px; margin-bottom: 5px;">
+        </div>
+    </div>
 {% endblock %}
