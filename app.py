@@ -112,6 +112,10 @@ def sign_up():
         else:
             session["email"], session["pw"] = email, pw
             return redirect(url_for("create_user"))
+    else:
+        if "user_email" in session:
+            flash("You're already logged in")
+            return redirect(url_for("all_items"))
 
     return render_template("sign_up.html")
 
@@ -201,15 +205,40 @@ def my_items_reqs():
 @app.route("/create_user", methods = ["POST", "GET"])
 def create_user():
     user = None
+    no_name, no_phone, no_class, no_city = False, False, False, False
+    fields = ["name", "phone", "about", "class", "city", "pmoc", "oci"]
+    prefilled = {field: "" for field in fields}
     if "user_email" in session:
         user = Users.query.filter_by(user_email=session["user_email"]).first()
+        for field in fields:
+            if field == "about":
+                prefilled[field] = user.__getattribute__("user_about_me")
+            elif field == "phone":
+                prefilled[field] = user.__getattribute__("user_phone_no")
+            else:
+                prefilled[field] = user.__getattribute__(f"user_{field}")
+    session["prefilled"] = prefilled
         
     if request.method == "POST":
-        required = ["name", "phone", "class", "city"]
-        for field in required:
-            if request.form.get(field, "") == "":   
-                flash("Invalid submission! Fill out all starred fields")
-                return render_template("create_user.html", user=user)
+        for field in fields:
+            session["prefilled"][field] = request.form.get(field, "")
+
+        if request.form.get("name", "") == "":
+            no_name = True
+        if request.form.get("phone", "") == "":
+            no_phone = True
+        if request.form.get("class", "") == "":
+            no_class = True
+        if request.form.get("city", "") == "":
+            no_city = True
+
+        if no_name or no_phone or no_class or no_city:
+            flash("Invalid submission! Fill out all starred fields")
+            return render_template("create_user.html", user=user,
+                                    prefilled=session["prefilled"], no_name=no_name, 
+                                    no_phone=no_phone, no_class=no_class, 
+                                    no_city=no_city)
+
         if "user_email" not in session:
             new_usr = Users(name=request.form["name"],
                             password=session["pw"],
@@ -225,19 +254,31 @@ def create_user():
             flash(f"Created profile for {session['email']}. Please sign in")
             return redirect(url_for("login"))
         else:
+            change = False
             usr = Users.query.filter_by(user_email=session["user_email"]).first()
-            usr.user_name=request.form["name"]
-            usr.user_phone_no=request.form["phone"]
-            usr.user_class=request.form["class"]
-            usr.user_city=request.form["city"]
-            usr.user_about_me=request.form["about"]
-            usr.user_pmoc=request.form["pmoc"]
-            usr.user_oci=request.form["oci"]
+            for field in fields:
+                if field == "about":
+                    if request.form[field] != usr.__getattribute__("user_about_me"):
+                        usr.__setattr__("user_about_me", request.form[field])
+                        change = True
+                elif field == "phone":
+                    if request.form[field] != usr.__getattribute__("user_phone_no"):
+                        usr.__setattr__("user_phone_no", request.form[field])
+                        change = True
+                else:
+                    if request.form[field] != usr.__getattribute__(f"user_{field}"):
+                        usr.__setattr__(f"user_{field}", request.form[field])
+                        change = True
 
-            db.session.commit()
-            flash(f"Edited profile for {session['user_email']}.")
+            if change:
+                flash(f"Edited profile for {session['user_email']}")
+                db.session.commit()
+
             return redirect(url_for("user_info"))
-    return render_template("create_user.html", user=user)
+    return render_template("create_user.html", user=user,
+                            prefilled=prefilled, no_name=no_name, 
+                            no_phone=no_phone, no_class=no_class, 
+                            no_city=no_city)
 
 @app.route("/create_item", methods = ["POST", "GET"])
 def create_item():

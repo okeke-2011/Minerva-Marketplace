@@ -1,6 +1,136 @@
 {% extends "base.html" %}
 {% block title %}New Item{% endblock %}
 {% block body %}
+    
+<div class="ui grid" style="margin-left: 10px; margin-right: 10px;">
+    <div class="four wide column wide column"></div>
+    <div class="seven wide column">
+        <form class="ui form" action="#" method = "post">
+            {% if user %}
+                <div class="ui basic center aligned segment">
+                    <a href="{{url_for('user_info')}}">
+                        <button class="ui button" type="button">Cancel</button>
+                    </a>
+                    <button class="ui primary button" type="submit">Edit details</button>
+                </div>
+            {% endif %}
+
+            {% if no_name %}<div class="field error">{% else %}<div class="field">{% endif %}
+                <label>Name*</label>
+                <input type="text" name="name" placeholder="John Doe" value="{{prefilled['name']}}">
+            </div>
+
+            <div class="field">
+                <label>About me</label>
+                <textarea rows="5" name="about" placeholder="Describe yourself">{{prefilled['about']}}</textarea>
+            </div>
+
+            {% if no_phone %}<div class="field error">{% else %}<div class="field">{% endif %}
+                <label>Phone No*</label>
+                <input type="text" name="phone" placeholder="(555) 555-5555" value="{{prefilled['phone']}}">
+            </div>
+
+            <h5 class="ui header">Class*</h5>
+            {% if no_class %}<div class="field error">{% else %}<div class="field">{% endif %}
+                <div class="column">
+                    <div class="ui radio checkbox">
+                        <input type="radio" id="m23" name="class" value="M23" {% if prefilled.class == "M23" %} checked {% endif %}>
+                        <label>M23</label>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="ui radio checkbox">
+                        <input type="radio" id="m24" name="class" value="M24" {% if prefilled.class == "M24" %} checked {% endif %}>
+                        <label>M24</label>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="ui radio checkbox">
+                        <input type="radio" id="m25" name="class" value="M25" {% if prefilled.class == "M25" %} checked {% endif %}>
+                        <label>M25</label>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="ui radio checkbox">
+                        <input type="radio" id="m26" name="class" value="M26" {% if prefilled.class == "M26" %} checked {% endif %}>
+                        <label>M26</label>
+                    </div>
+                </div>
+            </div>
+
+            <h5 class="ui header">Current city*</h5>
+            {% if no_city %}<div class="field error">{% else %}<div class="field">{% endif %}
+                <div class="column">
+                    <div class="ui radio checkbox">
+                        <input type="radio" id="sf" name="city" value="San Francisco" {% if prefilled.city == "San Francisco" %} checked {% endif %}>
+                        <label>San Francisco</label>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="ui radio checkbox">
+                        <input type="radio" id="seoul" name="city" value="Seoul" {% if prefilled.city == "Seoul" %} checked {% endif %}>
+                        <label>Seoul</label>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="ui radio checkbox">
+                        <input type="radio" id="berlin" name="city" value="Berlin" {% if prefilled.city == "Berlin" %} checked {% endif %}>
+                        <label>Berlin</label>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="ui radio checkbox">
+                        <input type="radio" id="london" name="city" value="London" {% if prefilled.city == "London" %} checked {% endif %}>
+                        <label>London</label>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="ui radio checkbox">
+                        <input type="radio" id="ba" name="city" value="Buenos Aires" {% if prefilled.city == "Buenos Aires" %} checked {% endif %}>
+                        <label>Buenos Aires</label>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="ui radio checkbox">
+                        <input type="radio" id="taipei" name="city" value="Taipei" {% if prefilled.city == "Taipei" %} checked {% endif %}>
+                        <label>Taipei</label>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="ui radio checkbox">
+                        <input type="radio" id="hyderabad" name="city" value="Hyderabad" {% if prefilled.city == "Hyderabad" %} checked {% endif %}>
+                        <label>Hyderabad</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Preferred mode of communication</label>
+                <input type="text" name="pmoc" placeholder = "E.g., Telegram" value="{{prefilled['pmoc']}}">
+            </div>
+
+            <div class="field">
+                <label>Other contact info</label>
+                <textarea rows="5" name="oci" placeholder = "IG: @john_doe246">{{prefilled['oci']}}</textarea>
+            </div>
+
+            {% if user %}
+                <div class="ui basic center aligned segment">
+                    <a href="{{url_for('user_info')}}">
+                        <button class="ui button" type="button">Cancel</button>
+                    </a>
+                    <button class="ui primary button" type="submit">Edit details</button>
+                </div>
+            {% else %}
+                <div class="ui basic center aligned segment">
+                    <button class="ui primary button" type="submit">Create account</button>
+                </div>
+            {% endif %}
+            
+        </form>
+    </div> 
+</div>
+
     <form action="#" method = "post">
         <p><b>Item Name*</b><br>
             <input type="text" name="name">

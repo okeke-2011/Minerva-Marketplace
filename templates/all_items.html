@@ -140,6 +140,11 @@
         </div> 
 
         <div class="twelve wide column">
+            {% if not items %}
+                <div class="ui basic center aligned segment" style="margin-top: 200px;">
+                    <h4 class="ui header">No results for your search criteria. Try broadening your search!</h4>
+                </div>
+            {% endif %}
             <div class="ui four cards">
                 {% for item in items %}
                     <a class="card" href="{{ url_for('view_item', id=item.item_id) }}">

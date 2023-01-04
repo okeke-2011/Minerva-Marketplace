@@ -7,95 +7,97 @@
             <form class="ui form" action="#" method = "post">
                 {% if user %}
                     <div class="ui basic center aligned segment">
+                        <a href="{{url_for('user_info')}}">
+                            <button class="ui button" type="button">Cancel</button>
+                        </a>
                         <button class="ui primary button" type="submit">Edit details</button>
                     </div>
                 {% endif %}
 
-                <div class="field">
+                {% if no_name %}<div class="field error">{% else %}<div class="field">{% endif %}
                     <label>Name*</label>
-                    <input type="text" name="name" placeholder="John Doe" value="{% if user %}{{user.user_name}}{% endif %}">
+                    <input type="text" name="name" placeholder="John Doe" value="{{prefilled['name']}}">
                 </div>
 
                 <div class="field">
                     <label>About me</label>
-                    <textarea rows="5" name="about" placeholder="Describe yourself">{% if user %}{{user.user_about_me}}{% endif %}</textarea>
-                    <!-- <input type="text" name="about" placeholder="Describe yourself" value="{% if user %}{{user.user_about_me}}{% endif %}"> -->
+                    <textarea rows="5" name="about" placeholder="Describe yourself">{{prefilled['about']}}</textarea>
                 </div>
 
-                <div class="field">
+                {% if no_phone %}<div class="field error">{% else %}<div class="field">{% endif %}
                     <label>Phone No*</label>
-                    <input type="text" name="phone" placeholder="(555) 555-5555" value="{% if user %}{{user.user_phone_no}}{% endif %}">
+                    <input type="text" name="phone" placeholder="(555) 555-5555" value="{{prefilled['phone']}}">
                 </div>
 
                 <h5 class="ui header">Class*</h5>
-                <div class="ui segment">
+                {% if no_class %}<div class="field error">{% else %}<div class="field">{% endif %}
                     <div class="column">
                         <div class="ui radio checkbox">
-                            <input type="radio" id="m23" name="class" value="M23" {% if user.user_class == "M23" %} checked {% endif %}>
+                            <input type="radio" id="m23" name="class" value="M23" {% if prefilled.class == "M23" %} checked {% endif %}>
                             <label>M23</label>
                         </div>
                     </div>
                     <div class="column">
                         <div class="ui radio checkbox">
-                            <input type="radio" id="m24" name="class" value="M24" {% if user.user_class == "M24" %} checked {% endif %}>
+                            <input type="radio" id="m24" name="class" value="M24" {% if prefilled.class == "M24" %} checked {% endif %}>
                             <label>M24</label>
                         </div>
                     </div>
                     <div class="column">
                         <div class="ui radio checkbox">
-                            <input type="radio" id="m25" name="class" value="M25" {% if user.user_class == "M25" %} checked {% endif %}>
+                            <input type="radio" id="m25" name="class" value="M25" {% if prefilled.class == "M25" %} checked {% endif %}>
                             <label>M25</label>
                         </div>
                     </div>
                     <div class="column">
                         <div class="ui radio checkbox">
-                            <input type="radio" id="m26" name="class" value="M26" {% if user.user_class == "M26" %} checked {% endif %}>
+                            <input type="radio" id="m26" name="class" value="M26" {% if prefilled.class == "M26" %} checked {% endif %}>
                             <label>M26</label>
                         </div>
                     </div>
                 </div>
 
                 <h5 class="ui header">Current city*</h5>
-                <div class="ui segment">
+                {% if no_city %}<div class="field error">{% else %}<div class="field">{% endif %}
                     <div class="column">
                         <div class="ui radio checkbox">
-                            <input type="radio" id="sf" name="city" value="San Francisco" {% if user.user_city == "San Francisco" %} checked {% endif %}>
+                            <input type="radio" id="sf" name="city" value="San Francisco" {% if prefilled.city == "San Francisco" %} checked {% endif %}>
                             <label>San Francisco</label>
                         </div>
                     </div>
                     <div class="column">
                         <div class="ui radio checkbox">
-                            <input type="radio" id="seoul" name="city" value="Seoul" {% if user.user_city == "Seoul" %} checked {% endif %}>
+                            <input type="radio" id="seoul" name="city" value="Seoul" {% if prefilled.city == "Seoul" %} checked {% endif %}>
                             <label>Seoul</label>
                         </div>
                     </div>
                     <div class="column">
                         <div class="ui radio checkbox">
-                            <input type="radio" id="berlin" name="city" value="Berlin" {% if user.user_city == "Berlin" %} checked {% endif %}>
+                            <input type="radio" id="berlin" name="city" value="Berlin" {% if prefilled.city == "Berlin" %} checked {% endif %}>
                             <label>Berlin</label>
                         </div>
                     </div>
                     <div class="column">
                         <div class="ui radio checkbox">
-                            <input type="radio" id="london" name="city" value="London" {% if user.user_city == "London" %} checked {% endif %}>
+                            <input type="radio" id="london" name="city" value="London" {% if prefilled.city == "London" %} checked {% endif %}>
                             <label>London</label>
                         </div>
                     </div>
                     <div class="column">
                         <div class="ui radio checkbox">
-                            <input type="radio" id="ba" name="city" value="Buenos Aires" {% if user.user_city == "Buenos Aires" %} checked {% endif %}>
+                            <input type="radio" id="ba" name="city" value="Buenos Aires" {% if prefilled.city == "Buenos Aires" %} checked {% endif %}>
                             <label>Buenos Aires</label>
                         </div>
                     </div>
                     <div class="column">
                         <div class="ui radio checkbox">
-                            <input type="radio" id="taipei" name="city" value="Taipei" {% if user.user_city == "Taipei" %} checked {% endif %}>
+                            <input type="radio" id="taipei" name="city" value="Taipei" {% if prefilled.city == "Taipei" %} checked {% endif %}>
                             <label>Taipei</label>
                         </div>
                     </div>
                     <div class="column">
                         <div class="ui radio checkbox">
-                            <input type="radio" id="hyderabad" name="city" value="Hyderabad" {% if user.user_city == "Hyderabad" %} checked {% endif %}>
+                            <input type="radio" id="hyderabad" name="city" value="Hyderabad" {% if prefilled.city == "Hyderabad" %} checked {% endif %}>
                             <label>Hyderabad</label>
                         </div>
                     </div>
@@ -103,17 +105,19 @@
 
                 <div class="field">
                     <label>Preferred mode of communication</label>
-                    <input type="text" name="pmoc" placeholder = "E.g., Telegram" value="{% if user %}{{user.user_pmoc}}{% endif %}">
+                    <input type="text" name="pmoc" placeholder = "E.g., Telegram" value="{{prefilled['pmoc']}}">
                 </div>
 
                 <div class="field">
                     <label>Other contact info</label>
-                    <textarea rows="5" name="oci" placeholder = "IG: @john_doe246">{% if user %}{{user.user_oci}}{% endif %}</textarea>
-                    <!-- <input name="oci" placeholder = "IG: @john_doe246" value="{% if user %}{{user.user_oci}}{% endif %}"> -->
+                    <textarea rows="5" name="oci" placeholder = "IG: @john_doe246">{{prefilled['oci']}}</textarea>
                 </div>
 
                 {% if user %}
                     <div class="ui basic center aligned segment">
+                        <a href="{{url_for('user_info')}}">
+                            <button class="ui button" type="button">Cancel</button>
+                        </a>
                         <button class="ui primary button" type="submit">Edit details</button>
                     </div>
                 {% else %}
@@ -125,58 +129,4 @@
             </form>
         </div> 
     </div>
-    <!-- <form action="#" method = "post"> -->
-        <!-- <p><b>About me</b><br>
-            <input name="about" placeholder="Describe yourself" value="{% if user %}{{user.user_about_me}}{% endif %}">
-        </p> -->
-
-        <!-- <p><b>Name*</b><br>
-            <input type="text" name="name" placeholder="John Doe" value="{% if user %}{{user.user_name}}{% endif %}">
-        </p> -->
-
-        <!-- <p><b>Phone No*</b><br>
-            <input type="text" name="phone" placeholder="(555) 555-5555" value="{% if user %}{{user.user_phone_no}}{% endif %}">
-        </p> -->
-
-        <!-- <p><b>Class*</b></p>
-        <input type="radio" id="m23" name="class" value="M23" {% if user.user_class == "M23" %} checked {% endif %}>
-        <label for="m23">M23</label><br>
-        <input type="radio" id="m24" name="class" value="M24" {% if user.user_class == "M24" %} checked {% endif %}>
-        <label for="m24">M24</label><br>
-        <input type="radio" id="m25" name="class" value="M25" {% if user.user_class == "M25" %} checked {% endif %}>
-        <label for="m25">M25</label><br>
-        <input type="radio" id="m26" name="class" value="M26" {% if user.user_class == "M26" %} checked {% endif %}>
-        <label for="m26">M26</label><br> -->
-
-        <!-- <p><b>Current city*</b></p>
-        <input type="radio" id="sf" name="city" value="San Francisco" {% if user.user_city == "San Francisco" %} checked {% endif %}>
-        <label for="sf">San Francisco</label><br>
-        <input type="radio" id="seoul" name="city" value="Seoul" {% if user.user_city == "Seoul" %} checked {% endif %}>
-        <label for="seoul">Seoul</label><br>
-        <input type="radio" id="berlin" name="city" value="Berlin" {% if user.user_city == "Berlin" %} checked {% endif %}>
-        <label for="berlin">Berlin</label><br>
-        <input type="radio" id="london" name="city" value="London" {% if user.user_city == "London" %} checked {% endif %}>
-        <label for="london">London</label><br>
-        <input type="radio" id="ba" name="city" value="Buenos Aires" {% if user.user_city == "Buenos Aires" %} checked {% endif %}>
-        <label for="ba">Buenos Aires</label><br>
-        <input type="radio" id="taipei" name="city" value="Taipei" {% if user.user_city == "Taipei" %} checked {% endif %}>
-        <label for="taipei">Taipei</label><br>
-        <input type="radio" id="hyderabad" name="city" value="Hyderabad" {% if user.user_city == "Hyderabad" %} checked {% endif %}>
-        <label for="hyderabad">Hyderabad</label><br> -->
-
-        <!-- <p><b>Preferred mode of communication</b><br>
-            <input type="text" name="pmoc" placeholder = "E.g., Telegram" value="{% if user %}{{user.user_pmoc}}{% endif %}">
-        </p>
-
-        <p><b>Other contact info</b><br>
-            <input name="oci" placeholder = "IG: @john_doe246" value="{% if user %}{{user.user_oci}}{% endif %}">
-        </p>
-
-        {% if user %}
-            <input type="submit" value="Edit details">
-        {% else %}
-            <input type="submit" value="Create account">
-        {% endif %}
-        <br><br>
-    </form> -->
 {% endblock %}
