@@ -282,12 +282,30 @@ def create_user():
 
 @app.route("/create_item", methods = ["POST", "GET"])
 def create_item():
+    no_name, no_price, no_category, no_city, no_state = False, False, False, False, False
+    fields = ["name", "price", "description", "category", "city", "shelflife", "state"]
+    session["prefilled_item"] = {field: "" for field in fields}
+    
     if request.method == "POST":
-        required = ["name", "price", "category", "city", "state"]
-        for field in required:
-            if request.form.get(field, "") == "":   
-                flash("Invalid submission! Fill out all starred fields")
-                return render_template("create_item.html")
+        for field in fields:
+            session["prefilled_item"][field] = request.form.get(field, "")
+
+        if request.form.get("name", "") == "":
+            no_name = True
+        if request.form.get("price", "") == "":
+            no_price = True
+        if request.form.get("category", "") == "":
+            no_category = True
+        if request.form.get("city", "") == "":
+            no_city = True
+        if request.form.get("state", "") == "":
+            no_state = True
+
+        if no_name or no_price or no_category or no_city or no_state:
+            flash("Invalid submission! Fill out all starred fields")
+            return render_template("create_item.html", prefilled=session["prefilled_item"], 
+                                    no_name=no_name, no_price=no_price, no_category=no_category,
+                                    no_city=no_city, no_state=no_state)
 
         user_id = Users.query.filter_by(user_email=session["user_email"]).first().user_id
         new_item = Items(pos_id = user_id, 
@@ -295,15 +313,18 @@ def create_item():
                         loc=request.form["city"], 
                         cat=request.form["category"], 
                         state=request.form["state"], 
-                        descp=request.form["descp"], 
-                        shelf=request.form["shelf"], 
+                        descp=request.form["description"], 
+                        shelf=request.form["shelflife"], 
                         price=request.form["price"])
         db.session.add(new_item)
         db.session.commit()
         flash(f"Added new item '{request.form['name']}' for user '{session['user_email']}'")
+        session.pop("prefilled_item", None)
         return redirect(url_for("my_items_post"))
 
-    return render_template("create_item.html")
+    return render_template("create_item.html", prefilled=session["prefilled_item"], 
+                            no_name=no_name, no_price=no_price, no_category=no_category,
+                            no_city=no_city, no_state=no_state)
 
 @app.route("/user_info", methods = ["POST", "GET"])
 def user_info():
