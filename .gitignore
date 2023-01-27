@@ -1,0 +1,8 @@
+venv/
+.DS_Store
+database.sqlite3
+Procfile
+static/.DS_Store
+templates/.DS_Store
+__pycache__/
+pyvenv.cfg

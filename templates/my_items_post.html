@@ -7,13 +7,13 @@
         </a>
     </div>
 
-    {% if not all_items[0][1] and not all_items[1][1] and not all_items[2][1] %}
+    {% if not all_items[0][2] and not all_items[1][2] and not all_items[2][2] %}
         <div class="ui basic center aligned segment" style="margin-top: 125px;">
             <h4 class="ui header">No posts yet. Add an item with the "Post Item" button</h4>
         </div>
     {% endif %}
     
-    {% for status, items in all_items %}
+    {% for status, color, items in all_items %}
         {% if items %}
             <div class="ui basic center aligned segment">
                 <h3 class="ui header">{{status}}</h3>
@@ -22,6 +22,7 @@
             <div class="ui five cards" style="margin-left: 15px; margin-right: 15px;">
                 {% for item in items %}
                     <div class="card">
+                        <div class="ui {{color}} inverted segment"></div>
                         <a href="{{ url_for('view_item', id=item.item_id) }}">
                             <img class="ui small centered image" src="/static/placeholder.png" style="margin-top: 15px; margin-bottom: 5px;">
                         </a>

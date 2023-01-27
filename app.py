@@ -7,7 +7,8 @@ from sqlalchemy import or_
 # set up the app and database
 app = Flask(__name__)
 app.secret_key = "Minerva MarketPlace"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.sqlite3"
+# app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.sqlite3"
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://minerva_marketplace_db_user:lSA91bZq9WFH2hDNebg8dcpEg9X6YSHr@dpg-cfa5pnun6mpi1ble0f30-a.oregon-postgres.render.com/minerva_marketplace_db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
@@ -170,14 +171,14 @@ def my_items_post():
         filter(Items.poster_id == user_id).\
         order_by(Items.date_posted.desc()).all()
 
-    all_items = [("Not Requested", []), ("Requested", []), ("Approved", [])]
+    all_items = [("Not Requested", "grey", []), ("Requested", "orange", []), ("Approved", "green", [])]
     for item in all_statuses:
         if item.item_status == "NR":
-            all_items[0][1].append(item)
+            all_items[0][2].append(item)
         elif item.item_status == "R":
-            all_items[1][1].append(item)
+            all_items[1][2].append(item)
         elif item.item_status == "A":
-            all_items[2][1].append(item)
+            all_items[2][2].append(item)
 
     return render_template("my_items_post.html", all_items=all_items)
 
@@ -193,12 +194,12 @@ def my_items_reqs():
         filter(Items.requester_id == user_id).\
         order_by(Items.date_posted.desc()).all()
 
-    all_items = [("Requested", []), ("Approved", [])]
+    all_items = [("Requested", "orange", []), ("Approved", "green", [])]
     for item in all_statuses:
         if item.item_status == "R":
-            all_items[0][1].append(item)
+            all_items[0][2].append(item)
         elif item.item_status == "A":
-            all_items[1][1].append(item)
+            all_items[1][2].append(item)
 
     return render_template("my_items_reqs.html", all_items=all_items)
 

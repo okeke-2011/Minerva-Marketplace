@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% block title %}Requests{% endblock %}
 {% block body %}
-    {% if not all_items[0][1] and not all_items[1][1] %}
+    {% if not all_items[0][2] and not all_items[1][2] %}
         <div class="ui basic center aligned segment" style="margin-top: 200px;">
             <h4 class="ui header">No requests yet. Go to the Home page to find items to request</h4>
         </div>
     {% endif %}
 
-    {% for status, items in all_items %}
+    {% for status, color, items in all_items %}
         {% if items %}
             <div class="ui basic center aligned segment">
                 <h3 class="ui header">{{status}}</h3>
@@ -16,6 +16,7 @@
             <div class="ui five cards" style="margin-left: 15px; margin-right: 15px;">
                 {% for item in items %}
                     <div class="card">
+                        <div class="ui {{color}} inverted segment"></div>
                         <a href="{{ url_for('view_item', id=item.item_id) }}">
                             <img class="ui small centered image" src="/static/placeholder.png" style="margin-top: 15px; margin-bottom: 5px;">
                         </a>
