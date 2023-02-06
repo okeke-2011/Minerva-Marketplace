@@ -13,6 +13,7 @@
             <th>Class</th>
             <th>City</th>
             <th>About me</th>
+            <th>Picture Name</th>
         </tr></thead>
         <tbody>
             {% for user in all_users %}
@@ -24,6 +25,7 @@
                     <td data-label="Class">{{user.user_class}}</td>
                     <td data-label="City">{{user.user_city}}</td>
                     <td data-label="About me">{{user.user_about_me}}</td>
+                    <td data-label="Picture Name">{{user.user_profile_pic}}</td>
                 </tr>
             {% endfor %}
         </tbody>
@@ -44,6 +46,7 @@
             <th>Date Posted</th>
             <th>Price</th>
             <th>State</th>
+            <th>Image ID</th>
         </tr></thead>
         <tbody>
             {% for item in all_items %}
@@ -64,6 +67,31 @@
                     <td data-label="Date Posted">{{item.date_posted.date()}}</td>
                     <td data-label="Price">{{item.item_price}}</td>
                     <td data-label="State">{{item.item_state}}</td>
+                    <td data-label="Image ID">{{item.image_id}}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="ui basic center aligned segment" style="margin-top: 10px;">
+        <h2 class="ui header">All Images</h2>
+    </div>
+    <table class="ui celled table" style="margin-left: 10px; margin-right: 10px;">
+        <thead>
+            <tr><th>ID</th>
+            <th>Original Filename</th>
+            <th>Generated Filename</th>
+            <th>S3 Bucket</th>
+            <th>Region</th>
+        </tr></thead>
+        <tbody>
+            {% for img in all_images %}
+                <tr>
+                    <td data-label="ID">{{img.id}}</td>
+                    <td data-label="Original Filename">{{img.original_filename}}</td>
+                    <td data-label="Generated Filename">{{img.filename}}</td>
+                    <td data-label="S3 Bucket">{{img.bucket}}</td>
+                    <td data-label="Region">{{img.region}}</td>
                 </tr>
             {% endfor %}
         </tbody>

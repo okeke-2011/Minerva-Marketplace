@@ -1,20 +1,24 @@
 # import necessary libraries
 import datetime
-from flask import Flask, redirect, url_for, render_template, request, session, flash
+from flask import Flask, redirect, url_for, render_template, request, session, flash, Response
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import or_
+import uuid
+import boto3
 
 # set up the app and database
 app = Flask(__name__)
 app.secret_key = "Minerva MarketPlace"
+app.config["UPLOAD_FOLDER"] = "static/images/"
 # app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.sqlite3"
-app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://minerva_marketplace_db_user:lSA91bZq9WFH2hDNebg8dcpEg9X6YSHr@dpg-cfa5pnun6mpi1ble0f30-a.oregon-postgres.render.com/minerva_marketplace_db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://minerva_marketplace_db_rj0m_user:ruSXFMv3OjqgwMDv1WfuJqwKXGdCaut2@dpg-cfg5nv1gp3jjseb52gug-a.oregon-postgres.render.com/minerva_marketplace_db_rj0m"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 
 class Users(db.Model):
     user_id = db.Column(db.Integer, primary_key = True)
+    image_id = db.Column(db.Integer)
     user_name = db.Column(db.String(100))
     user_email = db.Column(db.String(100))
     user_phone_no = db.Column(db.String(100))
@@ -23,7 +27,6 @@ class Users(db.Model):
     user_city = db.Column(db.String(100))
     user_pmoc = db.Column(db.String(100))
     user_oci = db.Column(db.String(100))
-    user_profile_pic = db.Column(db.String(100))
     password = db.Column(db.String(100))
 
     def __init__(self, name, password, email, phone, curr_class, city, about = "", pmoc = "", oci = "", pic = ""):
@@ -42,6 +45,7 @@ class Items(db.Model):
     item_id = db.Column(db.Integer, primary_key = True)
     requester_id = db.Column(db.Integer)
     poster_id = db.Column(db.Integer)
+    image_id = db.Column(db.Integer)
     item_status = db.Column(db.String(100))
     item_name = db.Column(db.String(100))
     item_location = db.Column(db.String(100))
@@ -51,11 +55,11 @@ class Items(db.Model):
     item_state = db.Column(db.String(100))
     date_posted = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     item_price = db.Column(db.String(100))
-    item_pic = db.Column(db.String(100))
 
-    def __init__(self, pos_id, name, loc, cat, state, descp="", shelf="", price="", pic="", req_id=-1, status="NR"):
+    def __init__(self, pos_id, img_id, name, loc, cat, state, descp="", shelf="", price="", pic="", req_id=-1, status="NR"):
         self.requester_id = req_id
         self.poster_id = pos_id
+        self.image_id = img_id
         self.item_status = status
         self.item_name = name
         self.item_location = loc
@@ -66,12 +70,19 @@ class Items(db.Model):
         self.item_price = price
         self.item_pic = pic
 
+class Images(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    original_filename = db.Column(db.String(100))
+    filename = db.Column(db.String(100))
+    bucket = db.Column(db.String(100))
+    region = db.Column(db.String(100))
+
 @app.route("/", methods = ["POST", "GET"])
 def login():
     if request.method == "POST":
         found_user = Users.query.filter_by(user_email = request.form["user_email"],password = request.form["password"]).first()
         if not found_user:
-            flash(f"No profile for {request.form['user_email']}")
+            flash(f"Invalid credentials!")
             return render_template("login.html")
 
         else:
@@ -126,8 +137,10 @@ def all_items():
         flash("You need to log in!")
         return redirect(url_for("login"))
 
-    items = db.session.query(Items.item_id, Items.item_name, Items.item_price, Users.user_name).\
+    items = db.session.query(Items.item_id, Items.item_name, Items.item_price, Users.user_name,
+                            Images.bucket, Images.filename, Images.region).\
         join(Users, Users.user_id == Items.poster_id).\
+        join(Images, Images.id == Items.image_id).\
         filter(Users.user_email != session["user_email"]).\
         filter(Items.item_status == "NR")
 
@@ -166,8 +179,11 @@ def my_items_post():
         return redirect(url_for("login"))
 
     user_id = Users.query.filter_by(user_email=session["user_email"]).first().user_id
-    all_statuses = db.session.query(Items.item_id, Items.item_name, Items.item_price, Items.item_status, Users.user_name).\
+    all_statuses = db.session.query(Items.item_id, Items.item_name, Items.item_price, 
+                                    Items.item_status, Users.user_name,
+                                    Images.bucket, Images.filename, Images.region).\
         join(Users, Users.user_id == Items.requester_id, isouter=True).\
+        join(Images, Images.id == Items.image_id).\
         filter(Items.poster_id == user_id).\
         order_by(Items.date_posted.desc()).all()
 
@@ -189,8 +205,11 @@ def my_items_reqs():
         return redirect(url_for("login"))
 
     user_id = Users.query.filter_by(user_email=session["user_email"]).first().user_id
-    all_statuses = db.session.query(Items.item_id, Items.item_name, Items.item_price, Items.item_status, Users.user_name).\
+    all_statuses = db.session.query(Items.item_id, Items.item_name, Items.item_price, 
+                                    Items.item_status, Users.user_name,
+                                    Images.bucket, Images.filename, Images.region).\
         join(Users, Users.user_id == Items.poster_id, isouter=True).\
+        join(Images, Images.id == Items.image_id).\
         filter(Items.requester_id == user_id).\
         order_by(Items.date_posted.desc()).all()
 
@@ -281,9 +300,12 @@ def create_user():
                             no_phone=no_phone, no_class=no_class, 
                             no_city=no_city)
 
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'jpg', 'png'}
+
 @app.route("/create_item", methods = ["POST", "GET"])
 def create_item():
-    no_name, no_price, no_category, no_city, no_state = False, False, False, False, False
+    no_name, no_price, no_category, no_city, no_state, no_image = False, False, False, False, False, False
     fields = ["name", "price", "description", "category", "city", "shelflife", "state"]
     session["prefilled_item"] = {field: "" for field in fields}
     
@@ -301,12 +323,33 @@ def create_item():
             no_city = True
         if request.form.get("state", "") == "":
             no_state = True
+        if not request.files["item_pic"].filename:
+            no_image = True
 
-        if no_name or no_price or no_category or no_city or no_state:
+        if no_name or no_price or no_category or no_city or no_state or no_image:
             flash("Invalid submission! Fill out all starred fields")
             return render_template("create_item.html", prefilled=session["prefilled_item"], 
                                     no_name=no_name, no_price=no_price, no_category=no_category,
-                                    no_city=no_city, no_state=no_state)
+                                    no_city=no_city, no_state=no_state, no_image=no_image)
+
+        item_pic = request.files["item_pic"]
+        if not allowed_file(item_pic.filename):
+            flash("FILE TYPE NOT ALLOWED! Only jpg or png files.")
+            return render_template("create_item.html", prefilled=session["prefilled_item"], 
+                                    no_name=no_name, no_price=no_price, no_category=no_category,
+                                    no_city=no_city, no_state=no_state, no_image=True)
+
+        new_filename = uuid.uuid4().hex + '.' + item_pic.filename.rsplit('.', 1)[1].lower()
+
+        bucket_name = "minerva-marketplace-pics"
+        s3 = boto3.resource("s3")
+        s3.Bucket(bucket_name).upload_fileobj(item_pic, new_filename)
+
+        img = Images(original_filename=item_pic.filename, filename=new_filename, 
+                    bucket=bucket_name, region="us-west-2")
+        
+        db.session.add(img)
+        db.session.commit()
 
         user_id = Users.query.filter_by(user_email=session["user_email"]).first().user_id
         new_item = Items(pos_id = user_id, 
@@ -316,7 +359,9 @@ def create_item():
                         state=request.form["state"], 
                         descp=request.form["description"], 
                         shelf=request.form["shelflife"], 
-                        price=request.form["price"])
+                        price=request.form["price"],
+                        img_id=img.id)
+        
         db.session.add(new_item)
         db.session.commit()
         flash(f"Added new item '{request.form['name']}' for user '{session['user_email']}'")
@@ -330,7 +375,7 @@ def create_item():
 @app.route("/user_info", methods = ["POST", "GET"])
 def user_info():
     if "user_email" in session:
-        usr = Users.query.filter_by(user_email = session["user_email"], password = session["password"]).first()
+        usr = Users.query.filter_by(user_email=session["user_email"], password=session["password"]).first()
         return render_template("user_info.html", usr=usr)
     else:
         flash("You need to log in!")
@@ -372,13 +417,18 @@ def view_item(id):
     buyer = db.session.query(*Users.__table__.columns).filter(Users.user_id==item.requester_id).first()
     seller = db.session.query(*Users.__table__.columns).filter(Users.user_id==item.poster_id).first()
     user_id = Users.query.filter_by(user_email=session["user_email"]).first().user_id
-    return render_template("view_item.html", item=item, buyer=buyer, seller=seller, user_id=user_id)
+
+    image = db.session.query(*Images.__table__.columns).filter(Images.id==item.image_id).first()
+    image_link = f"https://{image.bucket}.s3.{image.region}.amazonaws.com/{image.filename}"
+
+    return render_template("view_item.html", item=item, buyer=buyer, seller=seller, user_id=user_id, image_link=image_link)
 
 @app.route("/show_db")
 def show_db():
     all_users = Users.query.all()
     all_items = Items.query.all()
-    return render_template("show_db.html", all_users = all_users, all_items = all_items)
+    all_images = Images.query.all()
+    return render_template("show_db.html", all_users=all_users, all_items=all_items, all_images=all_images)
 
 @app.route("/logout")
 def logout():

@@ -5,7 +5,7 @@
 <div class="ui grid" style="margin-left: 10px; margin-right: 10px;">
     <div class="four wide column wide column"></div>
     <div class="seven wide column">
-        <form class="ui form" action="#" method = "post">
+        <form class="ui form" action="#" method = "post" enctype="multipart/form-data">
             <div class="ui basic center aligned segment">
                 <a href="{{url_for('my_items_post')}}">
                     <button class="ui button" type="button">Cancel</button>
@@ -136,13 +136,17 @@
                 </div>
             </div>
 
+            {% if no_image %}<div class="field error">{% else %}<div class="field">{% endif %}
+                <label>Upload item Picture*</label>
+                <input type="file" name="item_pic" value="Choose file">
+            </div>
+
             <div class="ui basic center aligned segment">
                 <a href="{{url_for('my_items_post')}}">
                     <button class="ui button" type="button">Cancel</button>
                 </a>
                 <button class="ui primary button" type="submit">Post Item</button>
             </div>
-            
         </form>
     </div> 
 </div>
