@@ -1,16 +1,19 @@
 # import necessary libraries
 import datetime
-from flask import Flask, redirect, url_for, render_template, request, session, flash, Response
+from flask import Flask, redirect, url_for, render_template, request, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import or_
 import uuid
 import boto3
+from PIL import Image
+from io import BytesIO  
 
 # set up the app and database
 app = Flask(__name__)
 app.secret_key = "Minerva MarketPlace"
 app.config["UPLOAD_FOLDER"] = "static/images/"
 # app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.sqlite3"
+# make this an env variable (more secure)
 app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://minerva_marketplace_db_rj0m_user:ruSXFMv3OjqgwMDv1WfuJqwKXGdCaut2@dpg-cfg5nv1gp3jjseb52gug-a.oregon-postgres.render.com/minerva_marketplace_db_rj0m"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -29,8 +32,9 @@ class Users(db.Model):
     user_oci = db.Column(db.String(100))
     password = db.Column(db.String(100))
 
-    def __init__(self, name, password, email, phone, curr_class, city, about = "", pmoc = "", oci = "", pic = ""):
+    def __init__(self, name, password, email, phone, curr_class, city, pic_id, about = "", pmoc = "", oci = ""):
         self.user_name = name
+        self.image_id = pic_id
         self.password = password
         self.user_email = email
         self.user_phone_no = phone
@@ -39,7 +43,6 @@ class Users(db.Model):
         self.user_city = city
         self.user_pmoc = pmoc
         self.user_oci = oci
-        self.user_profile_pic = pic
 
 class Items(db.Model):
     item_id = db.Column(db.Integer, primary_key = True)
@@ -56,7 +59,7 @@ class Items(db.Model):
     date_posted = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     item_price = db.Column(db.String(100))
 
-    def __init__(self, pos_id, img_id, name, loc, cat, state, descp="", shelf="", price="", pic="", req_id=-1, status="NR"):
+    def __init__(self, pos_id, img_id, name, loc, cat, state, descp="", shelf="", price="", req_id=-1, status="NR"):
         self.requester_id = req_id
         self.poster_id = pos_id
         self.image_id = img_id
@@ -68,7 +71,6 @@ class Items(db.Model):
         self.item_shelflife = shelf
         self.item_state = state
         self.item_price = price
-        self.item_pic = pic
 
 class Images(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -222,10 +224,13 @@ def my_items_reqs():
 
     return render_template("my_items_reqs.html", all_items=all_items)
 
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'jpg', 'png'}
+
 @app.route("/create_user", methods = ["POST", "GET"])
 def create_user():
     user = None
-    no_name, no_phone, no_class, no_city = False, False, False, False
+    no_name, no_phone, no_class, no_city, wrong_ext = False, False, False, False, False
     fields = ["name", "phone", "about", "class", "city", "pmoc", "oci"]
     prefilled = {field: "" for field in fields}
     if "user_email" in session:
@@ -257,7 +262,38 @@ def create_user():
             return render_template("create_user.html", user=user,
                                     prefilled=session["prefilled"], no_name=no_name, 
                                     no_phone=no_phone, no_class=no_class, 
-                                    no_city=no_city)
+                                    no_city=no_city, wrong_ext=wrong_ext)
+
+        if request.files["profile_pic"].filename:
+            profile_pic = request.files["profile_pic"]
+            if not allowed_file(profile_pic.filename):
+                flash("FILE TYPE NOT ALLOWED! Only jpg or png files.")
+                return render_template("create_user.html", user=user,
+                                        prefilled=session["prefilled"], no_name=no_name, 
+                                        no_phone=no_phone, no_class=no_class, 
+                                        no_city=no_city, wrong_ext=True)
+
+            new_filename = uuid.uuid4().hex + '.' + profile_pic.filename.rsplit('.', 1)[1].lower()
+            bucket_name = "minerva-marketplace-pics"
+            img = Images(original_filename=profile_pic.filename, filename=new_filename, 
+                        bucket=bucket_name, region="us-west-2")
+            
+            db.session.add(img)
+            db.session.commit()
+
+            pic_id = img.id
+
+            in_mem_file = BytesIO()
+            resized_profile_pic = Image.open(profile_pic)
+            resized_profile_pic.thumbnail((250, 250))
+            resized_profile_pic.save(in_mem_file, format=resized_profile_pic.format)
+            in_mem_file.seek(0)
+
+            s3 = boto3.resource("s3")
+            s3.Bucket(bucket_name).upload_fileobj(in_mem_file, new_filename)
+
+        else:
+            pic_id = -1
 
         if "user_email" not in session:
             new_usr = Users(name=request.form["name"],
@@ -268,7 +304,8 @@ def create_user():
                             city=request.form["city"],
                             about=request.form["about"],
                             pmoc=request.form["pmoc"],
-                            oci=request.form["oci"])
+                            oci=request.form["oci"],
+                            pic_id=pic_id)
             db.session.add(new_usr)
             db.session.commit()
             flash(f"Created profile for {session['email']}. Please sign in")
@@ -289,6 +326,10 @@ def create_user():
                     if request.form[field] != usr.__getattribute__(f"user_{field}"):
                         usr.__setattr__(f"user_{field}", request.form[field])
                         change = True
+            
+            if pic_id != -1:
+                usr.image_id = pic_id
+                change = True
 
             if change:
                 flash(f"Edited profile for {session['user_email']}")
@@ -299,9 +340,6 @@ def create_user():
                             prefilled=prefilled, no_name=no_name, 
                             no_phone=no_phone, no_class=no_class, 
                             no_city=no_city)
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'jpg', 'png'}
 
 @app.route("/create_item", methods = ["POST", "GET"])
 def create_item():
@@ -339,11 +377,16 @@ def create_item():
                                     no_name=no_name, no_price=no_price, no_category=no_category,
                                     no_city=no_city, no_state=no_state, no_image=True)
 
-        new_filename = uuid.uuid4().hex + '.' + item_pic.filename.rsplit('.', 1)[1].lower()
+        in_mem_file = BytesIO()
+        resized_item_pic = Image.open(item_pic)
+        resized_item_pic.thumbnail((250, 250))
+        resized_item_pic.save(in_mem_file, format=resized_item_pic.format)
+        in_mem_file.seek(0)
 
+        new_filename = uuid.uuid4().hex + '.' + item_pic.filename.rsplit('.', 1)[1].lower()
         bucket_name = "minerva-marketplace-pics"
         s3 = boto3.resource("s3")
-        s3.Bucket(bucket_name).upload_fileobj(item_pic, new_filename)
+        s3.Bucket(bucket_name).upload_fileobj(in_mem_file, new_filename)
 
         img = Images(original_filename=item_pic.filename, filename=new_filename, 
                     bucket=bucket_name, region="us-west-2")
@@ -376,7 +419,12 @@ def create_item():
 def user_info():
     if "user_email" in session:
         usr = Users.query.filter_by(user_email=session["user_email"], password=session["password"]).first()
-        return render_template("user_info.html", usr=usr)
+        img = Images.query.filter_by(id=usr.image_id).first()
+        if img:
+            image_link = f"https://{img.bucket}.s3.{img.region}.amazonaws.com/{img.filename}"
+        else:
+            image_link = "/static/male_avatar.png"
+        return render_template("user_info.html", usr=usr, image_link=image_link)
     else:
         flash("You need to log in!")
         return redirect(url_for("login"))
@@ -421,7 +469,20 @@ def view_item(id):
     image = db.session.query(*Images.__table__.columns).filter(Images.id==item.image_id).first()
     image_link = f"https://{image.bucket}.s3.{image.region}.amazonaws.com/{image.filename}"
 
-    return render_template("view_item.html", item=item, buyer=buyer, seller=seller, user_id=user_id, image_link=image_link)
+    if buyer and buyer.image_id != -1:
+        buyer_pic = db.session.query(*Images.__table__.columns).filter(Images.id==buyer.image_id).first()
+        buyer_pic_link = f"https://{buyer_pic.bucket}.s3.{buyer_pic.region}.amazonaws.com/{buyer_pic.filename}"
+    else:
+        buyer_pic_link = "/static/male_avatar.png"
+    
+    if seller and seller.image_id != -1:
+        seller_pic = db.session.query(*Images.__table__.columns).filter(Images.id==seller.image_id).first()
+        seller_pic_link = f"https://{seller_pic.bucket}.s3.{seller_pic.region}.amazonaws.com/{seller_pic.filename}"
+    else:
+        seller_pic_link = "/static/male_avatar.png"
+
+    return render_template("view_item.html", item=item, buyer=buyer, seller=seller, user_id=user_id, 
+                            image_link=image_link, buyer_pic_link=buyer_pic_link, seller_pic_link=seller_pic_link)
 
 @app.route("/show_db")
 def show_db():
@@ -440,4 +501,5 @@ def logout():
 
 if __name__ == "__main__":
     db.create_all()
+    # db.drop_all()
     app.run(debug=True)

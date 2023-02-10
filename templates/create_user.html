@@ -4,7 +4,7 @@
     <div class="ui grid" style="margin-left: 10px; margin-right: 10px;">
         <div class="four wide column wide column"></div>
         <div class="seven wide column">
-            <form class="ui form" action="#" method = "post">
+            <form class="ui form" action="#" method = "post" enctype="multipart/form-data">
                 {% if user %}
                     <div class="ui basic center aligned segment">
                         <a href="{{url_for('user_info')}}">
@@ -111,6 +111,11 @@
                 <div class="field">
                     <label>Other contact info</label>
                     <textarea rows="5" name="oci" placeholder = "IG: @john_doe246">{{prefilled['oci']}}</textarea>
+                </div>
+
+                {% if wrong_ext %}<div class="field error">{% else %}<div class="field">{% endif %}
+                    <label>Upload profile pic</label>
+                    <input type="file" name="profile_pic" value="Choose file">
                 </div>
 
                 {% if user %}
