@@ -1,23 +1,35 @@
 # import necessary libraries
 import datetime
 from flask import Flask, redirect, url_for, render_template, request, session, flash
+from flask_mail import Mail, Message
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import or_
 import uuid
 import boto3
 from PIL import Image
 from io import BytesIO  
+import os
 
 # set up the app and database
 app = Flask(__name__)
 app.secret_key = "Minerva MarketPlace"
 app.config["UPLOAD_FOLDER"] = "static/images/"
+# uncomment this line and comment the next for testing
 # app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.sqlite3"
-# make this an env variable (more secure)
-app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://minerva_marketplace_db_rj0m_user:ruSXFMv3OjqgwMDv1WfuJqwKXGdCaut2@dpg-cfg5nv1gp3jjseb52gug-a.oregon-postgres.render.com/minerva_marketplace_db_rj0m"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv('SQLALCHEMY_DATABASE_URI')
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
+app.config["MAIL_SERVER"] = "smtp.gmail.com"
+app.config["MAIL_PORT"] = 465
+app.config["MAIL_USE_TLS"] = False
+app.config["MAIL_USE_SSL"] = True
+app.config["MAIL_USERNAME"] = os.getenv('MAIL_USERNAME')
+app.config["MAIL_PASSWORD"] = os.getenv('MAIL_PASSWORD')
+app.config["MAIL_DEFAULT_SENDER"] = os.getenv('MAIL_DEFAULT_SENDER')
+app.config["MAIL_SUPPRESS_SEND"] = False
+
 db = SQLAlchemy(app)
+mail = Mail(app)
 
 class Users(db.Model):
     user_id = db.Column(db.Integer, primary_key = True)
@@ -44,9 +56,10 @@ class Users(db.Model):
         self.user_pmoc = pmoc
         self.user_oci = oci
 
+# clean up legacy code
 class Items(db.Model):
     item_id = db.Column(db.Integer, primary_key = True)
-    requester_id = db.Column(db.Integer)
+    # requester_id = db.Column(db.Integer)
     poster_id = db.Column(db.Integer)
     image_id = db.Column(db.Integer)
     item_status = db.Column(db.String(100))
@@ -60,7 +73,7 @@ class Items(db.Model):
     item_price = db.Column(db.String(100))
 
     def __init__(self, pos_id, img_id, name, loc, cat, state, descp="", shelf="", price="", req_id=-1, status="NR"):
-        self.requester_id = req_id
+        # self.requester_id = req_id
         self.poster_id = pos_id
         self.image_id = img_id
         self.item_status = status
@@ -78,6 +91,11 @@ class Images(db.Model):
     filename = db.Column(db.String(100))
     bucket = db.Column(db.String(100))
     region = db.Column(db.String(100))
+
+class Requests(db.Model):
+    item_id = db.Column(db.Integer, primary_key=True)
+    requester_id = db.Column(db.Integer, primary_key=True)
+    date_requested = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
 @app.route("/", methods = ["POST", "GET"])
 def login():
@@ -99,6 +117,24 @@ def login():
             return redirect(url_for("all_items"))
         else:
             return render_template("login.html")
+
+@app.route("/forgot_password", methods = ["POST", "GET"])
+def forgot_password():
+    if request.method == "POST":
+        found_user = Users.query.filter_by(user_email = request.form["user_email"]).first()
+        if not found_user:
+            flash("This email is not registered in our database!")
+            return render_template("forgot_password.html")
+
+        else:
+            msg = Message("Forgot password", recipients=[found_user.user_email])
+            msg.html = f"<p>Your Minerva Marketplace password is <b>{found_user.password}</b></p>"
+            mail.send(msg)
+            flash("Your password was sent to your email. You can use that to log in")
+            return redirect(url_for("login"))
+
+
+    return render_template("forgot_password.html")
 
 @app.route("/sign_up", methods = ["POST", "GET"])
 def sign_up():
@@ -139,12 +175,18 @@ def all_items():
         flash("You need to log in!")
         return redirect(url_for("login"))
 
+    user_id = Users.query.filter_by(user_email=session["user_email"]).first().user_id
+    requests_by_user = db.session.query(Requests).filter(Requests.requester_id == user_id)
+    req_items = [req.item_id for req in requests_by_user]
+
     items = db.session.query(Items.item_id, Items.item_name, Items.item_price, Users.user_name,
                             Images.bucket, Images.filename, Images.region).\
         join(Users, Users.user_id == Items.poster_id).\
         join(Images, Images.id == Items.image_id).\
+        join(Requests, Requests.item_id==Items.item_id, isouter=True).\
         filter(Users.user_email != session["user_email"]).\
-        filter(Items.item_status == "NR")
+        filter(Items.item_status != "A").\
+        filter(Items.item_id.notin_(req_items))
 
     if request.method == "POST":
         cats = [request.form[f"cat{i+1}"] for i in range(6) if f"cat{i+1}" in request.form]
@@ -172,7 +214,15 @@ def all_items():
             items = items.filter(Items.date_posted >= target_date)
 
     ordered_items = items.order_by(Items.date_posted.desc()).all()
-    return render_template("all_items.html", items=ordered_items)
+    seen_item_ids = set()
+    final_items = []
+    for item in ordered_items:
+        if item.item_id not in seen_item_ids:
+            seen_item_ids.add(item.item_id)
+            num_reqs = len(db.session.query(Requests).filter(Requests.item_id==item.item_id).all()) 
+            final_items.append((item, num_reqs))
+
+    return render_template("all_items.html", items=final_items)
 
 @app.route("/my_items_post", methods = ["POST", "GET"])
 def my_items_post():
@@ -182,9 +232,8 @@ def my_items_post():
 
     user_id = Users.query.filter_by(user_email=session["user_email"]).first().user_id
     all_statuses = db.session.query(Items.item_id, Items.item_name, Items.item_price, 
-                                    Items.item_status, Users.user_name,
-                                    Images.bucket, Images.filename, Images.region).\
-        join(Users, Users.user_id == Items.requester_id, isouter=True).\
+                                    Items.item_status, Images.bucket, Images.filename, 
+                                    Images.region).\
         join(Images, Images.id == Items.image_id).\
         filter(Items.poster_id == user_id).\
         order_by(Items.date_posted.desc()).all()
@@ -194,7 +243,8 @@ def my_items_post():
         if item.item_status == "NR":
             all_items[0][2].append(item)
         elif item.item_status == "R":
-            all_items[1][2].append(item)
+            num_reqs = len(db.session.query(Requests).filter(Requests.item_id==item.item_id).all()) 
+            all_items[1][2].append((item, num_reqs))
         elif item.item_status == "A":
             all_items[2][2].append(item)
 
@@ -212,17 +262,19 @@ def my_items_reqs():
                                     Images.bucket, Images.filename, Images.region).\
         join(Users, Users.user_id == Items.poster_id, isouter=True).\
         join(Images, Images.id == Items.image_id).\
-        filter(Items.requester_id == user_id).\
+        join(Requests, Requests.item_id==Items.item_id).\
+        filter(Requests.requester_id == user_id).\
         order_by(Items.date_posted.desc()).all()
 
     all_items = [("Requested", "orange", []), ("Approved", "green", [])]
     for item in all_statuses:
         if item.item_status == "R":
-            all_items[0][2].append(item)
+            num_other_reqs = len(db.session.query(Requests).filter(Requests.item_id==item.item_id).all())-1
+            all_items[0][2].append((item, num_other_reqs))
         elif item.item_status == "A":
             all_items[1][2].append(item)
 
-    return render_template("my_items_reqs.html", all_items=all_items)
+    return render_template("my_items_reqs.html", all_items=all_items, user_id=user_id)
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'jpg', 'png'}
@@ -432,6 +484,8 @@ def user_info():
 @app.route('/delete/item/<id>', methods=['GET', 'POST'])
 def delete(id):
     item = db.session.query(Items).filter(Items.item_id==int(id)).first()
+    if item:
+        db.session.query(Requests).filter(Requests.item_id==item.item_id).delete()
     db.session.delete(item)
     db.session.commit()
     return redirect(url_for('my_items_post'))
@@ -439,32 +493,62 @@ def delete(id):
 @app.route('/req/item/<id>', methods=['GET', 'POST'])
 def req(id):
     item = db.session.query(Items).filter(Items.item_id==int(id)).first()
-    item.item_status = "R"
-    item.requester_id = Users.query.filter_by(user_email=session["user_email"]).first().user_id
+    if item.item_status == "NR":
+        item.item_status = "R"
+    
+    requester_id = Users.query.filter_by(user_email=session["user_email"]).first().user_id
+    request = Requests(item_id=item.item_id, requester_id=requester_id)
+
+    db.session.add(request)
     db.session.commit()
     return redirect(url_for('my_items_reqs'))
 
-@app.route('/unreq/item/<id>', methods=['GET', 'POST'])
-def unreq(id):
-    item = db.session.query(Items).filter(Items.item_id==int(id)).first()
-    item.item_status = "NR"
-    item.requester_id = -1
+@app.route('/unreq/item/<item_id>/<unreq_id>', methods=['GET', 'POST'])
+def unreq(item_id, unreq_id):
+    user_id = Users.query.filter_by(user_email=session["user_email"]).first().user_id
+    item = db.session.query(Items).filter(Items.item_id==int(item_id)).first()
+    num_requesters = len(db.session.query(Requests).filter(Requests.item_id==int(item_id)).all()) - 1
+    if num_requesters == 0:
+        item.item_status = "NR"
+    request = db.session.query(Requests).filter(
+                    Requests.item_id==item.item_id, 
+                    Requests.requester_id==unreq_id).first()
+    db.session.delete(request)
     db.session.commit()
+
+    if user_id != int(unreq_id):
+        return redirect(url_for('view_item', item_id=item.item_id, buyer_num=0))
     return redirect(url_for('my_items_reqs'))
 
-@app.route('/approve/item/<id>', methods=['GET', 'POST'])
-def approve(id):
-    item = db.session.query(Items).filter(Items.item_id==int(id)).first()
+@app.route('/approve/item/<item_id>/<buyer_id>', methods=['GET', 'POST'])
+def approve(item_id, buyer_id):
+    item = db.session.query(Items).filter(Items.item_id==int(item_id)).first()
+    if item:
+        db.session.query(Requests).\
+            filter(Requests.item_id==item.item_id).\
+            filter(Requests.requester_id!=buyer_id).delete()
     item.item_status = "A"
     db.session.commit()
     return redirect(url_for('my_items_post'))
 
-@app.route('/view/item/<id>', methods=['GET', 'POST'])
-def view_item(id):
-    item = db.session.query(*Items.__table__.columns).filter(Items.item_id==int(id)).first()
-    buyer = db.session.query(*Users.__table__.columns).filter(Users.user_id==item.requester_id).first()
+# test that people are ordered in the way they requested
+@app.route('/view/item/<item_id>/<buyer_num>', methods=['GET', 'POST'])
+def view_item(item_id, buyer_num):
+    item = db.session.query(*Items.__table__.columns).filter(Items.item_id==int(item_id)).first()
+    buyers = db.session.query(*Users.__table__.columns).\
+                join(Requests, Requests.requester_id==Users.user_id).\
+                filter(Requests.item_id==item.item_id).\
+                order_by(Requests.date_requested.desc()).all()
+    if buyers:
+        buyer = buyers[int(buyer_num)]
+    else:
+        buyer = None
+    
     seller = db.session.query(*Users.__table__.columns).filter(Users.user_id==item.poster_id).first()
     user_id = Users.query.filter_by(user_email=session["user_email"]).first().user_id
+    request = db.session.query(Requests).filter(
+                    Requests.item_id==item.item_id, 
+                    Requests.requester_id==user_id).first()
 
     image = db.session.query(*Images.__table__.columns).filter(Images.id==item.image_id).first()
     image_link = f"https://{image.bucket}.s3.{image.region}.amazonaws.com/{image.filename}"
@@ -481,7 +565,8 @@ def view_item(id):
     else:
         seller_pic_link = "/static/male_avatar.png"
 
-    return render_template("view_item.html", item=item, buyer=buyer, seller=seller, user_id=user_id, 
+    return render_template("view_item.html", item=item, buyer=buyer, len_buyers=len(buyers),
+                            buyer_num=int(buyer_num), seller=seller, user_id=user_id, request=request, 
                             image_link=image_link, buyer_pic_link=buyer_pic_link, seller_pic_link=seller_pic_link)
 
 @app.route("/show_db")
@@ -489,7 +574,10 @@ def show_db():
     all_users = Users.query.all()
     all_items = Items.query.all()
     all_images = Images.query.all()
-    return render_template("show_db.html", all_users=all_users, all_items=all_items, all_images=all_images)
+    all_requests = Requests.query.all()
+    return render_template("show_db.html", all_users=all_users, 
+                            all_items=all_items, all_images=all_images,
+                            all_requests=all_requests)
 
 @app.route("/logout")
 def logout():
@@ -501,5 +589,4 @@ def logout():
 
 if __name__ == "__main__":
     db.create_all()
-    # db.drop_all()
     app.run(debug=True)

@@ -16,7 +16,15 @@
             </div>
         {% endif %}
         <div class="ui grid" style="margin-left: 50px; margin-right: 50px;">
-            <div class="four wide column"></div>
+            <div class="four wide center aligned column" style="margin-top: 350px;">
+                {% if buyer_num != 0 %}
+                    <a href="{{ url_for('view_item', item_id=item.item_id, buyer_num=buyer_num-1) }}">
+                        <button class="ui button" type="button">Previous</button>
+                    </a>
+                {% else %}
+                    <button class="ui disabled button" type="button">Previous</button>
+                {% endif %}  
+            </div>
             <div class="eight wide column">
                 <div>
                     <h2 class="ui basic center aligned header">Requester Info</h2>
@@ -67,16 +75,26 @@
                     </tbody>
                 </table>
             </div>
+            
+            <div class="four wide center aligned column" style="margin-top: 350px;">
+                {% if buyer_num != len_buyers-1 %}
+                    <a href="{{ url_for('view_item', item_id=item.item_id, buyer_num=buyer_num+1) }}">
+                        <button class="ui button" type="button">Next</button>
+                    </a>
+                {% else %}
+                    <button class="ui disabled button" type="button">Next</button>
+                {% endif %}
+            </div>
         </div>
 
         <div class="ui basic center aligned segment" style="margin-bottom: 50px;">
             {% if item.item_status == "R" %}
-                <a href="{{ url_for('approve', id=item.item_id) }}">
+                <a href="{{ url_for('approve', item_id=item.item_id, buyer_id=buyer.user_id) }}">
                     <button class="ui blue button">Accept</button>
                 </a>
             {% endif %}
     
-            <a href="{{ url_for('unreq', id=item.item_id) }}">
+            <a href="{{ url_for('unreq', item_id=item.item_id, unreq_id=buyer.user_id) }}">
                 <button class="ui red button">Decline</button>
             </a>
         </div>
@@ -96,7 +114,7 @@
         </div>
     {% endif %}
 
-    {% if user_id != seller.user_id and item.item_status == "NR" %}
+    {% if user_id != seller.user_id and item.item_status != "A" and not request %}
         <div class="ui basic center aligned segment">
             <a href="{{ url_for('req', id=item.item_id) }}">
                 <button class="ui button">Request Item</button>
@@ -106,7 +124,7 @@
 
     {% if user_id == buyer.user_id and item.item_status != "NR" %}
         <div class="ui basic center aligned segment">
-            <a href="{{ url_for('unreq', id=item.item_id) }}">
+            <a href="{{ url_for('unreq', item_id=item.item_id, unreq_id=buyer.user_id) }}">
                 <button class="ui button">Remove Item</button>
             </a>
         </div>
@@ -227,7 +245,7 @@
         </div>
     </div>
         
-    {% if user_id != seller.user_id and item.item_status == "NR" %}
+    {% if user_id != seller.user_id and item.item_status != "A" and not request %}
         <div class="ui basic center aligned segment">
             <a href="{{ url_for('req', id=item.item_id) }}">
                 <button class="ui button">Request Item</button>
@@ -237,7 +255,7 @@
 
     {% if user_id == buyer.user_id and item.item_status != "NR" %}
         <div class="ui basic center aligned segment">
-            <a href="{{ url_for('unreq', id=item.item_id) }}">
+            <a href="{{ url_for('unreq', item_id=item.item_id, unreq_id=buyer.user_id) }}">
                 <button class="ui button">Remove Item</button>
             </a>
         </div>

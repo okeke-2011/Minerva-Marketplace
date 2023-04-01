@@ -39,7 +39,6 @@
             <tr><th>ID</th>
             <th>Name</th>
             <th>Poster</th>
-            <th>Requester</th>
             <th>Status</th>
             <th>Location</th>
             <th>Category</th>
@@ -54,13 +53,6 @@
                     <td data-label="ID">{{item.item_id}}</td>
                     <td data-label="Name">{{item.item_name}}</td>
                     <td data-label="Poster">{{all_users[item.poster_id-1].user_name}}</td>
-                    <td data-label="Requester">
-                        {% if item.requester_id != -1 %}
-                            {{all_users[item.requester_id-1].user_name}}
-                        {% else %}
-                            None
-                        {% endif %}
-                    </td>
                     <td data-label="Status">{{item.item_status}}</td>
                     <td data-label="Location">{{item.item_location}}</td>
                     <td data-label="Category">{{item.item_category}}</td>
@@ -68,6 +60,26 @@
                     <td data-label="Price">{{item.item_price}}</td>
                     <td data-label="State">{{item.item_state}}</td>
                     <td data-label="Image ID">{{item.image_id}}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="ui basic center aligned segment" style="margin-top: 10px;">
+        <h2 class="ui header">All Requests</h2>
+    </div>
+    <table class="ui celled table" style="margin-left: 10px; margin-right: 10px;">
+        <thead>
+            <tr><th>Item ID</th>
+            <th>Requester ID</th>
+            <th>Date Requested</th>
+        </tr></thead>
+        <tbody>
+            {% for req in all_requests %}
+                <tr>
+                    <td data-label="Item ID">{{req.item_id}}</td>
+                    <td data-label="Requester ID">{{all_users[req.requester_id-1].user_name}}</td>
+                    <td data-label="Date Requested">{{req.date_requested.date()}}</td>
                 </tr>
             {% endfor %}
         </tbody>

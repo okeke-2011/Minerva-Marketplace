@@ -20,27 +20,50 @@
             </div>
 
             <div class="ui five cards" style="margin-left: 15px; margin-right: 15px;">
-                {% for item in items %}
-                    <div class="card">
-                        <div class="ui {{color}} inverted segment"></div>
-                        <a href="{{ url_for('view_item', id=item.item_id) }}">
-                            <img 
-                                class="ui centered image"
-                                src="https://{{item.bucket}}.s3.{{item.region}}.amazonaws.com/{{item.filename}}" 
-                                height="100" width="150"
-                                style="margin-top: 5px; margin-bottom: 5px;"/>
-                        </a>
-                        <div class="extra">
-                            Requester: {{item.user_name}} <br>
-                            Item Name: {{item.item_name}} <br> 
-                            Price: {{item.item_price}} <br>
-                            Status: {{status}} <br>
+                {% if status == "Requested" %}
+                    {% for item, num_reqs in items %}
+                        <div class="card">
+                            <div class="ui {{color}} inverted segment"></div>
+                            <a href="{{ url_for('view_item', item_id=item.item_id, buyer_num=0) }}">
+                                <img 
+                                    class="ui centered image"
+                                    src="https://{{item.bucket}}.s3.{{item.region}}.amazonaws.com/{{item.filename}}" 
+                                    height="100" width="150"
+                                    style="margin-top: 5px; margin-bottom: 5px;"/>
+                            </a>
+                            <div class="extra">
+                                Item Name: {{item.item_name}} <br> 
+                                Price: {{item.item_price}} <br>
+                                Status: {{num_reqs}} request(s) <br>
+                            </div>
+                            <a href="{{ url_for('delete', id=item.item_id) }}">
+                                <button class="ui fluid button">Delete</button>
+                            </a>
                         </div>
-                        <a href="{{ url_for('delete', id=item.item_id) }}">
-                            <button class="ui fluid button">Delete</button>
-                        </a>
-                    </div>
-                {% endfor %}
+                    {% endfor %}
+
+                {% else %}
+                    {% for item in items %}
+                        <div class="card">
+                            <div class="ui {{color}} inverted segment"></div>
+                            <a href="{{ url_for('view_item', item_id=item.item_id, buyer_num=0) }}">
+                                <img 
+                                    class="ui centered image"
+                                    src="https://{{item.bucket}}.s3.{{item.region}}.amazonaws.com/{{item.filename}}" 
+                                    height="100" width="150"
+                                    style="margin-top: 5px; margin-bottom: 5px;"/>
+                            </a>
+                            <div class="extra">
+                                Item Name: {{item.item_name}} <br> 
+                                Price: {{item.item_price}} <br>
+                                Status: {{status}} <br>
+                            </div>
+                            <a href="{{ url_for('delete', id=item.item_id) }}">
+                                <button class="ui fluid button">Delete</button>
+                            </a>
+                        </div>
+                    {% endfor %}
+                {% endif %}
             </div>
         {% endif %}
     {% endfor %}

@@ -146,8 +146,8 @@
                 </div>
             {% endif %}
             <div class="ui four cards">
-                {% for item in items %}
-                    <a class="card" href="{{ url_for('view_item', id=item.item_id) }}">
+                {% for item, num_reqs in items %}
+                    <a class="card" href="{{ url_for('view_item', item_id=item.item_id, buyer_num=0) }}">
                         <img 
                             class="ui centered image"
                             src="https://{{item.bucket}}.s3.{{item.region}}.amazonaws.com/{{item.filename}}" 
@@ -157,6 +157,7 @@
                             Seller: {{item.user_name}} <br>
                             Item Name: {{item.item_name}} <br> 
                             Price: {{item.item_price}} <br>
+                            Status: {{num_reqs}} request(s)
                         </div>
                     </a>
                 {% endfor %}
